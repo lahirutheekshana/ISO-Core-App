@@ -1,17 +1,15 @@
-//
-//  ISO_Core_AppApp.swift
-//  ISO-Core-App
-//
-//  Created by student1 on 2026-08-16.
-//
-
 import SwiftUI
+import FirebaseCore 
 
-@main
 struct ISO_Core_AppApp: App {
+    
+    init() {
+        // FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            //MainTabView() 
         }
     }
 }

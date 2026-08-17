@@ -43,3 +43,21 @@ class NetworkManager {
         }
     }
 }
+
+struct MealDBResponse: Codable {
+    let meals: [TheMealDBRecipe]?
+}
+
+struct TheMealDBRecipe: Codable, Identifiable {
+    let idMeal: String
+    let strMeal: String
+    let strCategory: String?
+    let strMealThumb: String?
+    
+    // UI එකට ලෙහෙසි වන පරිදි Computed Properties
+    
+    var id: String { idMeal }
+    var title: String { strMeal }
+    var imageURL: String { strMealThumb ?? "" }
+    var category: String { strCategory ?? "All" }
+}

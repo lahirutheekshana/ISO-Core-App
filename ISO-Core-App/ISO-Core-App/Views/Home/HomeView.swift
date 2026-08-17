@@ -1,19 +1,40 @@
 import SwiftUI
 
 struct HomeView: View {
+    
     @State private var searchText = ""
     @State private var selectedCategory = "All"
     
-    let categories = ["All", "Breakfast", "Pasta", "Vegan", "Desserts", "Meat", "Seafood"]
     
-    // Placeholder Mock Data
-    let trendingRecipes = [
-        MockRecipe(id: "1", title: "Spicy Arrabbiata Pasta", time: "30 min", rating: "4.8", imageURL: "https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg"),
-        MockRecipe(id: "2", title: "Avocado Toast", time: "10 min", rating: "4.9", imageURL: "https://www.themealdb.com/images/media/meals/1529446358.jpg"),
-        MockRecipe(id: "3", title: "Vegan Pancakes", time: "20 min", rating: "4.7", imageURL: "https://www.themealdb.com/images/media/meals/sywswr1511383814.jpg"),
-        MockRecipe(id: "4", title: "Grilled Salmon", time: "25 min", rating: "4.9", imageURL: "https://www.themealdb.com/images/media/meals/1525876468.jpg")
-    ]
+    @State private var trendingRecipes: [TheMealDBRecipe] = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+
+    let categories = [
+        "All",
+        "Breakfast",
+        "Beef",
+        "Vegetarian",
+        "Desserts",
+        "Meat",
+        "Seafood"]
+
     
+    // MARK: - Search & Category Filter Logic
+    
+    var filteredRecipes: [TheMealDBRecipe] {
+        
+        trendingRecipes.filter { recipe in
+            let matchesSearch = searchText.isEmpty || recipe.title.localizedCaseInsensitiveContains(searchText)
+            
+        
+            let matchesCategory = (selectedCategory == "All") ||
+            (!searchText.isEmpty) ||
+            (recipe.category.lowercased() == selectedCategory.lowercased())
+                 return matchesSearch && matchesCategory
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
@@ -21,18 +42,81 @@ struct HomeView: View {
                     headerSection
                     searchBar
                     categoryChips
-                    heroRecipeCard
-                    trendingSection
+                    
+                    if searchText.isEmpty {
+                        heroRecipeCard
+                    }
+                    
+                    if isLoading {
+                        ProgressView("Loading recipes....")
+                            .padding(.vertical, 40)
+                    } else if let error = errorMessage {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .padding(.vertical, 40)
+                        
+                    }else {
+                        trendingSection
+                    }
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 30)
+                .padding(.bottom, 90) // Bottom bar එකට ඉඩ තැබීමට
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            
+            .task{
+                await loadApiData()
+            }
+                
+                    .onChange(of: searchText) {
+                        newValue in
+                        Task {
+                            await searchAPIData(query: newValue)
+                        }
+                
+            }
         }
     }
     
-    // MARK: - UI Components
     
+    
+    private func loadApiData() async {
+        isLoading = true
+        errorMessage = nil
+        
+        let urlString = "https://www.themealdb.com/api/json/v1/1/search.php?s="
+        
+        do {
+            let respone: MealDBResponse = try await NetworkManager.shared.fetch(from:urlString)
+            self.trendingRecipes = respone.meals ?? []
+        } catch{
+            
+            self.errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+    
+    // Dynamic Search API Function එක
+    private func searchAPIData(query: String) async {
+        let urlString = "https://www.themealdb.com/api/json/v1/1/search.php?s=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        
+        do {
+            let response: MealDBResponse = try await NetworkManager.shared.fetch(from: urlString)
+            self.trendingRecipes = response.meals ?? []
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    // MARK: - UI Components
+
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -40,14 +124,14 @@ struct HomeView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                
+
                 Text("What are we cooking today?")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             Button {
                 // Profile action
             } label: {
@@ -63,16 +147,16 @@ struct HomeView: View {
         }
         .padding(.top, 10)
     }
-    
+
     private var searchBar: some View {
         HStack(spacing: 12) {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
-                
+
                 TextField("Search any recipe or ingredient...", text: $searchText)
                     .submitLabel(.search)
-                
+
                 if !searchText.isEmpty {
                     Button {
                         searchText = ""
@@ -87,7 +171,7 @@ struct HomeView: View {
             .background(.ultraThinMaterial)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.03), radius: 8, x: 0, y: 4)
-            
+
             Button {
                 // Filter action
             } label: {
@@ -101,7 +185,7 @@ struct HomeView: View {
             }
         }
     }
-    
+
     private var categoryChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -129,80 +213,117 @@ struct HomeView: View {
             .padding(.vertical, 4)
         }
     }
-    
+
     private var heroRecipeCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recipe of the Day")
                 .font(.title3)
                 .fontWeight(.bold)
-            
+
             HeroCardView()
         }
     }
-    
+
     private var trendingSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Trending Recipes")
+                Text(searchText.isEmpty ? "Trending Recipes" : "Search Results")
                     .font(.title3)
                     .fontWeight(.bold)
-                
+
                 Spacer()
+
                 
-                Button("See All") {
-                    // See all action
-                }
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.orange)
             }
-            
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(trendingRecipes) { recipe in
-                    //RecipeCardView(recipe: recipe)
+
+            if filteredRecipes.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "text.magnifyingglass")
+                        .font(.largeTitle)
+                        .foregroundColor(.gray)
+                    Text("No recipes found ")
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                    ForEach(filteredRecipes) { recipe in
+                        SimpleRecipeCardView(recipe: recipe)
+                    }
                 }
             }
         }
     }
 }
 
+// MARK: - Simple Recipe Card UI (Temporary Component)
+
+struct SimpleRecipeCardView: View {
+    let recipe: TheMealDBRecipe
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            AsyncImage(url: URL(string: recipe.imageURL)) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                Color.gray.opacity(0.2)
+            }
+            .frame(height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            Text(recipe.title)
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .lineLimit(1)
+
+            HStack {
+                Text(recipe.category)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.orange.opacity(0.15))
+                    .foregroundColor(.orange)
+                    .cornerRadius(8)
+                Spacer()
+            }
+        }
+        .padding(10)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+}
+
+
 // MARK: - Hero Card View
 struct HeroCardView: View {
     @State private var isFavorite = false
-    
+
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Background Image
             AsyncImage(url: URL(string: "https://www.themealdb.com/images/media/meals/1529444830.jpg")) { phase in
                 switch phase {
                 case .empty:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .overlay(ProgressView())
+                    Rectangle().fill(Color.gray.opacity(0.2)).overlay(ProgressView())
                 case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
+                    image.resizable().scaledToFill()
                 case .failure:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .overlay(Image(systemName: "photo").foregroundColor(.gray))
+                    Rectangle().fill(Color.gray.opacity(0.2)).overlay(Image(systemName: "photo").foregroundColor(.gray))
                 @unknown default:
                     EmptyView()
                 }
             }
             .frame(height: 240)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            
-            // Gradient Overlay for Readability
+
             LinearGradient(
                 colors: [.clear, .black.opacity(0.2), .black.opacity(0.8)],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            
-            // Favorite Button (Top Right Floating)
+
             VStack {
                 HStack {
                     Spacer()
@@ -223,21 +344,20 @@ struct HeroCardView: View {
                 }
                 Spacer()
             }
-            
-            // Hero Content Overlay
+
             VStack(alignment: .leading, spacing: 10) {
                 Text("Beef Wellington")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .lineLimit(2)
-                
+
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
                         Text("⏱️ 45 min")
                     }
-                    
+
                     HStack(spacing: 4) {
                         Image(systemName: "flame")
                         Text("🔥 650 kcal")
@@ -259,16 +379,16 @@ struct HeroCardView: View {
     }
 }
 
-// Mock Data Model needed for HomeView and RecipeCardView Preview
+// Mock Data Model
 struct MockRecipe: Identifiable {
     let id: String
     let title: String
     let time: String
     let rating: String
     let imageURL: String
+    let category: String
 }
 
 #Preview {
     HomeView()
 }
-

@@ -116,8 +116,8 @@ struct HomeView: View {
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
                             .background(
-                                selectedCategory == category
-                                ? Color.orange
+                                selectedCategory == category 
+                                ? Color.orange 
                                 : Color(.systemBackground)
                             )
                             .foregroundColor(selectedCategory == category ? .white : .primary)
@@ -159,7 +159,7 @@ struct HomeView: View {
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                 ForEach(trendingRecipes) { recipe in
-                    //RecipeCardView(recipe: recipe)
+                    RecipeCardView(recipe: recipe)
                 }
             }
         }
@@ -271,4 +271,3 @@ struct MockRecipe: Identifiable {
 #Preview {
     HomeView()
 }
-

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AppContentView: View {
+struct ContentView: View {
     @StateObject private var authVM = AuthViewModel()
     @State private var showLogin = false
     

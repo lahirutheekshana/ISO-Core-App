@@ -4,13 +4,15 @@ struct PantryFinderView: View {
     var body: some View {
         VStack {
             Image(systemName: "basket.fill")
-                .font(.system(size: 50))
+                .font(.largeTitle)
                 .foregroundColor(.orange)
-            Text("Pantry Finder View")
+                .padding()
+            Text("Pantry Finder")
                 .font(.title2)
-                .bold()
-                .padding(.top, 10)
+                .fontWeight(.semibold)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
 }
 
