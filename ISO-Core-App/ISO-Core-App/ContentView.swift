@@ -1,24 +1,37 @@
-//
-//  ContentView.swift
-//  ISO-Core-App
-//
-//  Created by student1 on 2026-08-16.
-//
-
 import SwiftUI
 
-struct ContentView: View {
+struct AppContentView: View {
+    @StateObject private var authVM = AuthViewModel()
+    @State private var showLogin = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if authVM.isAuthenticated {
+                AppMainTabView(authVM: authVM)
+            } else if showLogin {
+                LoginView(authVM: authVM)
+            } else {
+                WelcomeView(showLogin: $showLogin)
+            }
         }
-        .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct AppMainTabView: View {
+    @ObservedObject var authVM: AuthViewModel
+    
+    var body: some View {
+        TabView {
+            HomeView()
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+            
+            ProfileView(authVM: authVM)
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+        }
+        .accentColor(.orange)
+    }
 }
