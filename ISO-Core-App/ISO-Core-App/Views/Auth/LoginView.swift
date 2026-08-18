@@ -2,73 +2,137 @@ import SwiftUI
 import Combine
 
 struct LoginView: View {
+    
     @ObservedObject var authVM: AuthViewModel
+    
     @State private var showRegister = false
     
+    @State private var isPasswordVisible: Bool = false
+    
+    @State private var iconScale: CGFloat = 1.0
+    
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        
+        ZStack {
             
-            VStack(spacing: 12) {
-                Text("Welcome Back!")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                Text("Sign in to access your saved recipes")
-                    .foregroundColor(.secondary)
-            }
+           
+            Color.white
+                .ignoresSafeArea()
             
-            
-            VStack(spacing: 16) {
+            VStack(spacing: 24) {
+                Spacer()
                 
-                TextField("Email Address",text: $authVM.email)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
+               
+                Image(systemName: "fork.knife")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+                    .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
+                    .padding(.bottom, 10)
+                    .onTapGesture {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
+                                iconScale = 1.2
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation {
+                                    iconScale = 1.0
+                                }
+                            }
+                        }
                 
-                SecureField("Password", text: $authVM.password)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-            }
-            .padding(.top, 20)
-            
-            if let error = authVM.errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-            
-            Button {
-                authVM.login()
-            } label: {
-                if authVM.isLoading {
-                    ProgressView().tint(.white)
-                } else {
-                    Text("Sign In")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                
+                VStack(spacing: 8) {
+                    Text("Welcome Back!")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(.black)
+                    
+                    Text("Sign in to access your saved recipes")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 52)
-            .background(Color.orange)
-            .cornerRadius(12)
-            
-            Spacer()
-            
-            HStack {
-                Text("Don't have an account?")
-                    .foregroundColor(.secondary)
-                Button("Sign Up") {
-                    showRegister = true
+                .padding(.bottom, 10)
+                
+                
+                VStack(spacing: 16) {
+                    
+                    TextField("Email Address", text: $authVM.email)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .padding(.horizontal, 16)
+                        .frame(height: 54)
+                        .background(Color(white: 0.96))
+                        .cornerRadius(14)
+                    
+                    HStack{
+                        if isPasswordVisible{
+                            TextField("Password", text: $authVM.password)
+                        }else{
+                            SecureField("Password", text: $authVM.password)
+                        }
+                        
+                        Button {
+                            isPasswordVisible.toggle()
+                        } label: {
+                            Image(systemName: isPasswordVisible ? "eye.slash.fill" : "eye.fill").foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 54)
+                    .background(Color(white: 0.96))
+                    .cornerRadius(14)
                 }
-                .fontWeight(.bold)
-                .foregroundColor(.orange)
+                
+               
+                if let error = authVM.errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                }
+                
+           
+                Button {
+                    authVM.login()
+                } label: {
+                    HStack {
+                        if authVM.isLoading {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Sign In")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(Color(red: 1.0, green: 0.23, blue: 0.23))
+                    .cornerRadius(16)
+                    .shadow(color: Color(red: 1.0, green: 0.23, blue: 0.23).opacity(0.35), radius: 10, x: 0, y: 6)
+                }
+                .padding(.top, 8)
+                
+                Spacer()
+                
+             
+                HStack(spacing: 4) {
+                    Text("Don't have an account?")
+                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                    
+                    Button {
+                        showRegister = true
+                    } label: {
+                        Text("Sign Up")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
+                    }
+                }
+                .padding(.bottom, 10)
             }
+            .padding(.horizontal, 28)
         }
-        .padding(24)
         .sheet(isPresented: $showRegister) {
             RegisterView(authVM: authVM)
         }

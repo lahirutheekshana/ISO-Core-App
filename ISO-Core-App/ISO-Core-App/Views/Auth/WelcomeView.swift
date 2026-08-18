@@ -3,6 +3,8 @@ import Combine
 
 struct WelcomeView: View {
     
+    @State private var iconScale: CGFloat = 1.0
+    
     @Binding var showLogin: Bool
     
     var body: some View {
@@ -29,6 +31,16 @@ struct WelcomeView: View {
                     .frame(width: 60, height: 60)
                     .foregroundColor(.white)
                     .padding(.bottom, 10)
+                    .onTapGesture {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
+                                iconScale = 1.2
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation {
+                                    iconScale = 1.0
+                                }
+                            }
+                        }
                 
                 
                 Text("Cooking Made\nSimple & Fun")

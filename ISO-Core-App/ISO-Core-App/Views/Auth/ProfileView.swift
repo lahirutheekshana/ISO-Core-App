@@ -1,13 +1,17 @@
 import SwiftUI
 
 struct ProfileView: View {
+    
     @ObservedObject var authVM: AuthViewModel
+    
     @ObservedObject var firebaseManager = FirebaseManager.shared
     
     var body: some View {
+        
         NavigationStack {
+            
             VStack(spacing: 24) {
-                // Profile Header Card
+                
                 VStack(spacing: 12) {
                     Image(systemName: "person.crop.circle.fill")
                         .resizable()
