@@ -5,6 +5,7 @@ import Combine
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        
         // Firebase configuration stub
         FirebaseApp.configure()
         return true

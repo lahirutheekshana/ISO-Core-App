@@ -9,16 +9,18 @@ struct LoginView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            VStack(spacing: 8) {
-                Text("Welcome Back! 👋")
+            VStack(spacing: 12) {
+                Text("Welcome Back!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 Text("Sign in to access your saved recipes")
                     .foregroundColor(.secondary)
             }
             
+            
             VStack(spacing: 16) {
-                TextField("Email Address", text: $authVM.email)
+                
+                TextField("Email Address",text: $authVM.email)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     .padding()

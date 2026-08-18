@@ -2,13 +2,18 @@ import SwiftUI
 import Combine
 
 struct WelcomeView: View {
+    
     @Binding var showLogin: Bool
     
     var body: some View {
         ZStack {
-            // Modern Dark Gradient Background (Image එක නැතත් ලස්සනට පෙනේ)
+            
             LinearGradient(
-                colors: [Color.black, Color(white: 0.1), Color.orange.opacity(0.2)],
+                colors:[
+                    Color(red:1.0, green: 0.23, blue: 0.23),
+                    Color(red: 0.82, green: 0.12, blue: 0.12),
+                    Color(red:0.55, green: 0.05, blue: 0.05)
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -17,25 +22,28 @@ struct WelcomeView: View {
             VStack(spacing: 24) {
                 Spacer()
                 
-                // Top Icon / Symbol
-                Image(systemName: "flame.fill")
+                
+                Image(systemName: "fork.knife")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 70, height: 70)
-                    .foregroundColor(.orange)
+                    .frame(width: 60, height: 60)
+                    .foregroundColor(.white)
                     .padding(.bottom, 10)
                 
-                // Title (Center Aligned & Safe Fonts)
+                
                 Text("Cooking Made\nSimple & Fun")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .serif)
+                    )
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .lineSpacing(6)
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                 
                 // Subtitle
+                
                 Text("Discover thousands of recipes, search by ingredients, and save your favorites seamlessly.")
-                    .font(.body)
-                    .foregroundColor(.gray)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
                     .lineSpacing(4)
@@ -43,6 +51,7 @@ struct WelcomeView: View {
                 Spacer()
                 
                 // Action Button
+                
                 Button {
                     showLogin = true
                 } label: {
@@ -57,7 +66,7 @@ struct WelcomeView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(Color.orange)
+                    .background(Color.red)
                     .cornerRadius(16)
                     .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
