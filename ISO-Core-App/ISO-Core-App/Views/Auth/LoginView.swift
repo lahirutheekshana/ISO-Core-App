@@ -110,7 +110,43 @@ struct LoginView: View {
                     .cornerRadius(16)
                     .shadow(color: Color(red: 1.0, green: 0.23, blue: 0.23).opacity(0.35), radius: 10, x: 0, y: 6)
                 }
-                .padding(.top, 8)
+                .padding(.top, 4)
+                
+                HStack(spacing:12){
+                    VStack { Divider() }
+                    Text("OR")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.gray)
+                    VStack { Divider() }
+                }
+                .padding(.vertical, 4)
+                
+                
+                
+                Button {
+                    authVM.signInWithGoogle()
+                }label: {
+                    HStack(spacing: 10){
+                        Image(systemName: "g.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.red)
+                        
+                        Text("Continue with Google")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.black)
+                            
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(Color(white: 0.96))
+                    .cornerRadius(16)
+                    overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                }
                 
                 Spacer()
                 

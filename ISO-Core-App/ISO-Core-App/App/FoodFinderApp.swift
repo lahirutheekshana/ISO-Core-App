@@ -16,6 +16,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct FoodFinderApp: App {
     
     // Register app delegate for Firebase setup
+    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     @StateObject private var authVM = AuthViewModel()

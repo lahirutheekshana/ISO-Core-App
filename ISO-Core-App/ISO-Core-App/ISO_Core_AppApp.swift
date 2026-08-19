@@ -1,15 +1,13 @@
 import SwiftUI
-import FirebaseCore 
+
 
 struct ISO_Core_AppApp: App {
-    
-    init() {
-        // FirebaseApp.configure()
-    }
+    @StateObject private var authViewModel = AuthViewModel()
 
     var body: some Scene {
         WindowGroup {
-            //MainTabView() 
+            ContentView()
+                .environmentObject(authViewModel)
         }
     }
 }

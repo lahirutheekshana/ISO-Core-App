@@ -1,6 +1,5 @@
 import SwiftUI
 
-// Tab categories
 enum Tab: String, CaseIterable {
     case home = "house.fill"
     case pantry = "basket.fill"
@@ -21,7 +20,7 @@ struct MainTabView: View {
     @State private var currentTab: Tab = .home
 
     init() {
-        // Native tab bar එක hidden කරයි
+        
         UITabBar.appearance().isHidden = true
     }
 
