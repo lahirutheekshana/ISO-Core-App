@@ -13,6 +13,7 @@ struct ProfileView: View {
             VStack(spacing: 24) {
                 
                 VStack(spacing: 12) {
+                    
                     Image(systemName: "person.crop.circle.fill")
                         .resizable()
                         .frame(width: 80, height: 80)
@@ -33,6 +34,7 @@ struct ProfileView: View {
                 .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 3)
                 
                 // Saved Recipes Count
+                
                 HStack {
                     Text("Saved Recipes")
                         .font(.headline)
@@ -47,6 +49,7 @@ struct ProfileView: View {
                 Spacer()
                 
                 // Logout Button
+                
                 Button {
                     authVM.logout()
                 } label: {

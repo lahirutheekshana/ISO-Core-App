@@ -266,6 +266,11 @@ struct MockRecipe: Identifiable {
     let time: String
     let rating: String
     let imageURL: String
+    
+    var calories: Int = 450
+    var servings: Int = 2
+    var ingredients: [String] = ["200g Pasta", "2 tbsp Olive Oil", "Garlic", "Tomato Sauce", "Fresh Basil"]
+    var instructions: [String] = ["Boil water and cook pasta until al dente.", "Heat olive oil in a pan and sauté garlic.", "Add tomato sauce and simmer for 10 minutes.", "Toss pasta with sauce and garnish with basil."]
 }
 
 #Preview {

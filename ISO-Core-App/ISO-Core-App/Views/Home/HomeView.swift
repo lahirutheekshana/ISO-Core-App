@@ -259,37 +259,59 @@ struct HomeView: View {
 
 struct SimpleRecipeCardView: View {
     let recipe: TheMealDBRecipe
+    @State private var navigateToRecipe = false
+
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            AsyncImage(url: URL(string: recipe.imageURL)) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                Color.gray.opacity(0.2)
+        NavigationStack {
+            
+            VStack(alignment: .leading, spacing: 8) {
+                
+                AsyncImage(url: URL(string: recipe.imageURL)) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Color.gray.opacity(0.2)
+                }
+                .frame(height: 120)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(recipe.title)
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .lineLimit(1)
+                
+                HStack {
+                    Text(recipe.category)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange.opacity(0.15))
+                        .foregroundColor(.orange)
+                        .cornerRadius(8)
+                    Spacer()
+                }
             }
-            .frame(height: 120)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            Text(recipe.title)
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .lineLimit(1)
-
-            HStack {
-                Text(recipe.category)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.15))
-                    .foregroundColor(.orange)
-                    .cornerRadius(8)
-                Spacer()
+            .padding(10)
+            .background(Color(.systemBackground))
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .onTapGesture {
+                navigateToRecipe = true
+            }
+            
+            // 5. Tell SwiftUI which view to open when the state turns true
+            .navigationDestination(isPresented: $navigateToRecipe) {
+                RecipeCardView(recipe: MockRecipe(
+                    id: recipe.id,
+                    title: recipe.title,
+                    time: "45 min",
+                    rating: "4.5",
+                    imageURL: recipe.imageURL,
+                    category: recipe.category,
+                    ingredients:  ["A", "B", "C"]
+                ))
             }
         }
-        .padding(10)
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
 
@@ -385,8 +407,15 @@ struct MockRecipe: Identifiable {
     let rating: String
     let imageURL: String
     let category: String
+    
+    var calories: Int = 450
+    var servings: Int = 2
+    var ingredients: [String] = ["200g Pasta", "2 tbsp Olive Oil", "Garlic", "Tomato Sauce", "Fresh Basil"]
+    var instructions: [String] = ["Boil water and cook pasta until al dente.", "Heat olive oil in a pan and sauté garlic.", "Add tomato sauce and simmer for 10 minutes.", "Toss pasta with sauce and garnish with basil."]
+
 }
 
 #Preview {
     HomeView(authVM: AuthViewModel())
 }
+
