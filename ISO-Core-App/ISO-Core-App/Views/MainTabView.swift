@@ -17,7 +17,9 @@ enum Tab: String, CaseIterable {
 }
 
 struct MainTabView: View {
+    
     @ObservedObject var authVM: AuthViewModel
+    
     @State private var currentTab: Tab = .home
 
     init(authVM: AuthViewModel) {
@@ -34,10 +36,10 @@ struct MainTabView: View {
                 HomeView(authVM: authVM)
                     .tag(Tab.home)
                 
-                PantryFinderView()
+                PantryFinderView(authVM: authVM)
                     .tag(Tab.pantry)
                 
-                FavoritesView()
+                FavoritesView(authVM: authVM)
                     .tag(Tab.favorites)
                 
                 Text("Profile View")

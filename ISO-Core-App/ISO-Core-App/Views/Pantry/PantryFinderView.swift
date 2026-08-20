@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct PantryFinderView: View {
+    
+    @ObservedObject var authVM: AuthViewModel
+    
+    
     var body: some View {
         VStack {
             Image(systemName: "basket.fill")
@@ -15,5 +19,5 @@ struct PantryFinderView: View {
 }
 
 #Preview {
-    PantryFinderView()
+    PantryFinderView(authVM: AuthViewModel())
 }

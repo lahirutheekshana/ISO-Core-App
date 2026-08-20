@@ -91,6 +91,7 @@ struct WelcomeView: View {
 }
 
 // MARK: - Preview Provider
+
 struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
         WelcomeView(showLogin: .constant(false))

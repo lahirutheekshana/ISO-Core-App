@@ -1,8 +1,11 @@
 import SwiftUI
 
 struct ContentView: View {
+    
     @StateObject private var authVM = AuthViewModel()
+    
     @State private var showLogin = false
+
     
     var body: some View {
         Group {
@@ -19,6 +22,7 @@ struct ContentView: View {
 }
 
 struct AppMainTabView: View {
+    
     @ObservedObject var authVM: AuthViewModel
     
     var body: some View {
@@ -32,7 +36,16 @@ struct AppMainTabView: View {
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
+            FavoritesView(authVM: authVM)
+                .tabItem {
+                    Label("Favorite", systemImage: "heart.fill")
+                }
+            PantryFinderView(authVM: authVM)
+                .tabItem {
+                    Label("pantry", systemImage: "cart.fill")
+                }
+            
         }
-        .accentColor(.orange)
+        .tint(.orange)
     }
 }
