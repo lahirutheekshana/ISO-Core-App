@@ -152,18 +152,7 @@ struct HomeView: View {
             .background(.ultraThinMaterial)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.03), radius: 8, x: 0, y: 4)
-
-            Button {
-                // Filter action
-            } label: {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 50, height: 50)
-                    .background(Color.orange)
-                    .cornerRadius(16)
-                    .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
-            }
+            
         }
     }
 
