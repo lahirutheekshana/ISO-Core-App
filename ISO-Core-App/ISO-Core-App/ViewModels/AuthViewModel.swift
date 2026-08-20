@@ -4,7 +4,6 @@ import Combine
 import FirebaseCore
 import GoogleSignIn
 
-
 @MainActor
 class AuthViewModel: ObservableObject {
     @Published var email = ""
@@ -15,14 +14,19 @@ class AuthViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    nonisolated init() {
-            Task { @MainActor in
-                if let user = Auth.auth().currentUser {
-                    self.isAuthenticated = true
-                    await FirebaseManager.shared.fetchUserProfile(uid: user.uid)
-                }
+    init() {
+       
+        checkCurrentUser()
+    }
+    
+    private func checkCurrentUser() {
+        if let user = Auth.auth().currentUser {
+            self.isAuthenticated = true
+            Task {
+                await FirebaseManager.shared.fetchUserProfile(uid: user.uid)
             }
         }
+    }
     
     func login() {
         guard !email.isEmpty, !password.isEmpty else {
@@ -68,63 +72,62 @@ class AuthViewModel: ObservableObject {
         do {
             try FirebaseManager.shared.signOut()
             self.isAuthenticated = false
+            self.email = ""
+            self.password = ""
         } catch {
             self.errorMessage = error.localizedDescription
         }
     }
     
     func signInWithGoogle() {
-            guard let clientID = FirebaseApp.app()?.options.clientID else {
-                self.errorMessage = "Firebase Client ID is missing."
-                return
-            }
-            
-            let config = GIDConfiguration(clientID: clientID)
-            GIDSignIn.sharedInstance.configuration = config
-            
-            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let rootViewController = windowScene.windows.first?.rootViewController else {
-                self.errorMessage = "Unable to get Root View Controller."
-                return
-            }
-            
-            isLoading = true
-            errorMessage = nil
-            
-            GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { [weak self] result, error in
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            self.errorMessage = "Firebase Client ID is missing."
+            return
+        }
+        
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        
+        guard let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let rootViewController = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            self.errorMessage = "Unable to get Root View Controller."
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { [weak self] result, error in
+            Task { @MainActor in
                 guard let self = self else { return }
                 
                 if let error = error {
-                    Task { @MainActor in
-                        self.errorMessage = error.localizedDescription
-                        self.isLoading = false
-                    }
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
                     return
                 }
                 
                 guard let user = result?.user,
                       let idToken = user.idToken?.tokenString else {
-                    Task { @MainActor in
-                        self.errorMessage = "Failed to fetch Google ID Token."
-                        self.isLoading = false
-                    }
+                    self.errorMessage = "Failed to fetch Google ID Token."
+                    self.isLoading = false
                     return
                 }
                 
-                let credential = GoogleAuthProvider.credential(withIDToken: idToken,
-                                                               accessToken: user.accessToken.tokenString)
+                let credential = GoogleAuthProvider.credential(
+                    withIDToken: idToken,
+                    accessToken: user.accessToken.tokenString
+                )
                 
-                Task {
-                    do {
-                        _ = try await Auth.auth().signIn(with: credential)
-                        self.isAuthenticated = true
-                    } catch {
-                        self.errorMessage = error.localizedDescription
-                    }
-                    self.isLoading = false
+                do {
+                    _ = try await Auth.auth().signIn(with: credential)
+                    self.isAuthenticated = true
+                } catch {
+                    self.errorMessage = error.localizedDescription
                 }
+                self.isLoading = false
             }
         }
-    
-    
+    }
 }

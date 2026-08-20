@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     
+    @ObservedObject var authVM: AuthViewModel
+    
     @State private var searchText = ""
     @State private var selectedCategory = "All"
     
@@ -19,8 +21,6 @@ struct HomeView: View {
         "Meat",
         "Seafood"]
 
-    
-    // MARK: - Search & Category Filter Logic
     
     var filteredRecipes: [TheMealDBRecipe] {
         
@@ -68,12 +68,10 @@ struct HomeView: View {
                 await loadApiData()
             }
                 
-                    .onChange(of: searchText) {
-                        newValue in
-                        Task {
-                            await searchAPIData(query: newValue)
-                        }
-                
+            .onChange(of: searchText) { oldValue, newValue in
+                Task {
+                    await searchAPIData(query: newValue)
+                }
             }
         }
     }
@@ -115,7 +113,7 @@ struct HomeView: View {
     
     
     
-    // MARK: - UI Components
+ 
 
     private var headerSection: some View {
         HStack {
@@ -390,5 +388,5 @@ struct MockRecipe: Identifiable {
 }
 
 #Preview {
-    HomeView()
+    HomeView(authVM: AuthViewModel())
 }

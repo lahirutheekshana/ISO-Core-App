@@ -3,7 +3,7 @@ import Combine
 
 struct LoginView: View {
     
-    @ObservedObject var authVM: AuthViewModel
+    @EnvironmentObject var authVM: AuthViewModel
     
     @State private var showRegister = false
     
@@ -142,7 +142,7 @@ struct LoginView: View {
                     .frame(height: 52)
                     .background(Color(white: 0.96))
                     .cornerRadius(16)
-                    overlay(
+                    .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )

@@ -17,18 +17,21 @@ enum Tab: String, CaseIterable {
 }
 
 struct MainTabView: View {
+    @ObservedObject var authVM: AuthViewModel
     @State private var currentTab: Tab = .home
 
-    init() {
+    init(authVM: AuthViewModel) {
+        self.authVM = authVM
         
         UITabBar.appearance().isHidden = true
     }
 
     var body: some View {
+        
         ZStack(alignment: .bottom) {
-            // View Switcher
+            
             TabView(selection: $currentTab) {
-                HomeView()
+                HomeView(authVM: authVM)
                     .tag(Tab.home)
                 
                 PantryFinderView()
@@ -41,7 +44,7 @@ struct MainTabView: View {
                     .tag(Tab.profile)
             }
             
-            // Floating Bottom Tab Bar UI
+            
             customTabBar
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)

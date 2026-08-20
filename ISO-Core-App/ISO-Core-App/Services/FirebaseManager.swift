@@ -10,7 +10,6 @@ class FirebaseManager: ObservableObject {
     @Published var currentUser: UserProfile?
     @Published var favoriteRecipeIDs: [String] = []
     
-    // MARK: - Authentication
     
     func signUp(email: String, password: String, fullName: String) async throws {
         let result = try await Auth.auth().createUser(withEmail: email, password: password)

@@ -4,13 +4,12 @@ import Combine
 struct WelcomeView: View {
     
     @State private var iconScale: CGFloat = 1.0
-    
     @Binding var showLogin: Bool
     
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             ZStack {
-                
+                // Background Gradient
                 LinearGradient(
                     colors:[
                         Color(red:1.0, green: 0.23, blue: 0.23),
@@ -25,13 +24,14 @@ struct WelcomeView: View {
                 VStack(spacing: 24) {
                     Spacer()
                     
-                    
+                    // Animated App Logo
                     Image(systemName: "fork.knife")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 60, height: 60)
                         .foregroundColor(.white)
                         .padding(.bottom, 10)
+                        .scaleEffect(iconScale) // Captures the spring animation state
                         .onTapGesture {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
                                 iconScale = 1.2
@@ -43,17 +43,15 @@ struct WelcomeView: View {
                             }
                         }
                     
-                    
+                    // Title
                     Text("Cooking Made\nSimple & Fun")
-                        .font(.system(size: 34, weight: .bold, design: .serif)
-                        )
+                        .font(.system(size: 34, weight: .bold, design: .serif))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .lineSpacing(6)
                         .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                     
                     // Subtitle
-                    
                     Text("Discover thousands of recipes, search by ingredients, and save your favorites seamlessly.")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.85))
@@ -63,13 +61,10 @@ struct WelcomeView: View {
                     
                     Spacer()
                     
-                    // Action Button
-                    
+                    // Action Button (Onclick handler triggered here)
                     Button {
-                        DispatchQueue.main.async {
-                            withAnimation {
-                                showLogin = true
-                            }
+                        withAnimation(.easeInOut) {
+                            showLogin = true // Triggers fullScreenCover navigation
                         }
                     } label: {
                         HStack {
@@ -80,17 +75,24 @@ struct WelcomeView: View {
                             Image(systemName: "arrow.right")
                                 .font(.headline)
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(red: 0.55, green: 0.05, blue: 0.05)) // High-contrast dark red text
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(Color.red)
+                        .background(.white) // High-contrast white background
                         .cornerRadius(16)
-                        .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
+                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
                     }
                     .padding(.bottom, 20)
                 }
                 .padding(.horizontal, 30)
             }
         }
+    }
+}
+
+// MARK: - Preview Provider
+struct WelcomeView_Previews: PreviewProvider {
+    static var previews: some View {
+        WelcomeView(showLogin: .constant(false))
     }
 }

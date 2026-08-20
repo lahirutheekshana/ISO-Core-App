@@ -9,11 +9,12 @@ struct ContentView: View {
             if authVM.isAuthenticated {
                 AppMainTabView(authVM: authVM)
             } else if showLogin {
-                LoginView(authVM: authVM)
+                LoginView().environmentObject(authVM)
             } else {
                 WelcomeView(showLogin: $showLogin)
             }
         }
+        .environmentObject(authVM)
     }
 }
 
@@ -22,7 +23,7 @@ struct AppMainTabView: View {
     
     var body: some View {
         TabView {
-            HomeView()
+            HomeView(authVM: authVM)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
