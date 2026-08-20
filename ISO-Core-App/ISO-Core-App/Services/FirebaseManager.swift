@@ -4,6 +4,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 class FirebaseManager: ObservableObject {
+    
     static let shared = FirebaseManager()
     private let db = Firestore.firestore()
     

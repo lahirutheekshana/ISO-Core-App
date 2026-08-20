@@ -109,9 +109,11 @@ struct HomeView: View {
  
 
     private var headerSection: some View {
-        HStack {
+        let displayName = FirebaseManager.shared.currentUser?.fullName ?? "Chef User"
+        
+        return HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Hello, lahiru ")
+                Text("Hello, \(displayName) ")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
