@@ -60,7 +60,7 @@ struct HomeView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 90) // Bottom bar එකට ඉඩ තැබීමට
+                .padding(.bottom, 90)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             
@@ -105,20 +105,13 @@ struct HomeView: View {
             self.errorMessage = error.localizedDescription
         }
     }
-
-    
-    
-    
-    
-    
-    
     
  
 
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Hello, Chef! 👋")
+                Text("Hello, lahiru ")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -129,24 +122,12 @@ struct HomeView: View {
             }
 
             Spacer()
-
-            Button {
-                // Profile action
-            } label: {
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 44, height: 44)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.primary.opacity(0.1), lineWidth: 1))
-                    .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-                    .foregroundStyle(.orange, Color(.systemGray5))
-            }
         }
         .padding(.top, 10)
     }
 
     private var searchBar: some View {
+        
         HStack(spacing: 12) {
             HStack {
                 Image(systemName: "magnifyingglass")
@@ -317,6 +298,7 @@ struct SimpleRecipeCardView: View {
 
 
 // MARK: - Hero Card View
+
 struct HeroCardView: View {
     @State private var isFavorite = false
 

@@ -32,17 +32,19 @@ struct AppMainTabView: View {
                     Label("Home", systemImage: "house.fill")
                 }
             
-            ProfileView(authVM: authVM)
+            PantryFinderView(authVM: authVM)
                 .tabItem {
-                    Label("Profile", systemImage: "person.fill")
+                    Label("pantry", systemImage: "cart.fill")
                 }
+            
             FavoritesView(authVM: authVM)
                 .tabItem {
                     Label("Favorite", systemImage: "heart.fill")
                 }
-            PantryFinderView(authVM: authVM)
+            
+            ProfileView(authVM: authVM)
                 .tabItem {
-                    Label("pantry", systemImage: "cart.fill")
+                    Label("Profile", systemImage: "person.fill")
                 }
             
         }
