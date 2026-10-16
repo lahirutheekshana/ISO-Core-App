@@ -42,7 +42,7 @@ struct AppMainTabView: View {
                     Label("Favorite", systemImage: "heart.fill")
                 }
             
-            ProfileView(authVM: authVM)
+            ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
