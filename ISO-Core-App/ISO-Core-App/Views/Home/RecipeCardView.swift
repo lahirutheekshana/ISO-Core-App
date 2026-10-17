@@ -1,47 +1,35 @@
 import SwiftUI
+import Combine
 import AVFoundation
 
 struct RecipeCardView: View {
     
     let recipe: MockRecipe
-    
-    @State private var isFavorite = false
-    
+    @StateObject private var favoritesManager = FavoritesManager.shared
     @State private var checkedIngredients: Set<String> = []
     
-    // Voice Reader property
+
     
     private let speechSynthesizer = AVSpeechSynthesizer()
-    
     @State private var currentlyReadingStep: Int? = nil
     
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                
                 headerSection
                 
                 VStack(alignment: .leading, spacing: 24) {
-                    // Title and Ratings
                     titleSection
-                    
-                    // 2. Nutritional Breakdown Tags
                     nutritionalTagsSection
-                    
                     Divider()
-                    
-                    // 3. Interactive Ingredients Checklist
                     ingredientsSection
-                    
                     Divider()
-                    
-                    // 4. Step-by-Step Instructions with Voice/Timer
                     instructionsSection
                 }
                 .padding(20)
                 .background(Color(.systemBackground))
                 .cornerRadius(32, corners: [.topLeft, .topRight])
-                .offset(y: -30) // Overlap the header image
+                .offset(y: -30)
             }
         }
         .edgesIgnoringSafeArea(.top)
@@ -65,25 +53,23 @@ struct RecipeCardView: View {
             .frame(height: 350)
             .clipped()
             
-            // Gradient Overlay for readability at bottom of image
             LinearGradient(colors: [.clear, .black.opacity(0.4)], startPoint: .center, endPoint: .bottom)
                 .frame(height: 350)
             
-            // Floating Bookmark/Favorite Button
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                    isFavorite.toggle()
-                }
+                                    favoritesManager.toggleFavorite(recipe)
+                                }
             } label: {
-                Image(systemName: isFavorite ? "bookmark.fill" : "bookmark")
-                    .font(.system(size: 20))
-                    .foregroundColor(isFavorite ? .orange : .white)
-                    .padding(14)
+                Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(favoritesManager.isFavorite(recipe) ? .red : .white)
+                    .padding(12)
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
             }
-            .padding(.top, 50)
+            .padding(.top, 60)
             .padding(.trailing, 20)
         }
     }

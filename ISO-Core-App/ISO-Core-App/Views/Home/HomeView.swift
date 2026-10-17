@@ -26,8 +26,6 @@ struct HomeView: View {
         
         trendingRecipes.filter { recipe in
             let matchesSearch = searchText.isEmpty || recipe.title.localizedCaseInsensitiveContains(searchText)
-            
-        
             let matchesCategory = (selectedCategory == "All") ||
             (!searchText.isEmpty) ||
             (recipe.category.lowercased() == selectedCategory.lowercased())
@@ -81,9 +79,7 @@ struct HomeView: View {
     private func loadApiData() async {
         isLoading = true
         errorMessage = nil
-        
         let urlString = "https://www.themealdb.com/api/json/v1/1/search.php?s="
-        
         do {
             let respone: MealDBResponse = try await NetworkManager.shared.fetch(from:urlString)
             self.trendingRecipes = respone.meals ?? []
@@ -94,7 +90,6 @@ struct HomeView: View {
         isLoading = false
     }
     
-    // Dynamic Search API Function එක
     private func searchAPIData(query: String) async {
         let urlString = "https://www.themealdb.com/api/json/v1/1/search.php?s=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
         
@@ -106,7 +101,7 @@ struct HomeView: View {
         }
     }
     
- 
+
 
     private var headerSection: some View {
         let displayName = FirebaseManager.shared.currentUser?.fullName ?? "Chef User"
@@ -227,7 +222,6 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Simple Recipe Card UI (Temporary Component)
 
 struct SimpleRecipeCardView: View {
     let recipe: TheMealDBRecipe
@@ -288,7 +282,7 @@ struct SimpleRecipeCardView: View {
 }
 
 
-// MARK: - Hero Card View
+
 
 struct HeroCardView: View {
     @State private var isFavorite = false
@@ -372,7 +366,7 @@ struct HeroCardView: View {
     }
 }
 
-// Mock Data Model
+
 struct MockRecipe: Identifiable {
     let id: String
     let title: String

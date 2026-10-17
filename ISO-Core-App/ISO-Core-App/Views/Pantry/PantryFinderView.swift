@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import Vision
 
 struct PantryFinderView: View {
     
@@ -6,9 +8,9 @@ struct PantryFinderView: View {
     @StateObject private var pantryVM = PantryViewModel()
     @State private var newIngredient: String = ""
     
-    @State private var showingImagePicker = false
+    
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var inputImage: UIImage?
-    @State private var sourceType: UIImagePickerController.SourceType = .camera
     
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     
@@ -25,9 +27,15 @@ struct PantryFinderView: View {
                 .padding(.bottom, 90)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .sheet(isPresented: $showingImagePicker, onDismiss: processScannedImage) {
-                            ImagePicker(image: $inputImage, sourceType: sourceType)
-                        }
+            .onChange(of: selectedPhotoItem) { newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        self.inputImage = uiImage
+                        processScannedImage()
+                    }
+                }
+            }
         }
     }
     
@@ -50,7 +58,7 @@ struct PantryFinderView: View {
     }
     
     private var fridgeInputSection: some View {
-        HStack(spacing:12){
+        HStack(spacing: 12) {
             Image(systemName: "plus.circle")
                 .foregroundColor(.secondary)
             
@@ -61,16 +69,9 @@ struct PantryFinderView: View {
                 }
                 .submitLabel(.done)
             
-            Button{
-                #if targetEnvironment(simulator)
-                self.sourceType = .photoLibrary
-                #else
-                self.sourceType = .camera
-                #endif
-                self.showingImagePicker = true
-            } label: {
+            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                 Image(systemName: "camera.fill")
-                    .font(.system(size:18,weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.orange)
                     .padding(8)
                     .background(Color.orange.opacity(0.12))
@@ -183,53 +184,43 @@ struct PantryFinderView: View {
     }
     
     private func processScannedImage() {
-        guard let image = inputImage else { return }
+        guard let image = inputImage, let cgImage = image.cgImage else { return }
         
-        let detectedIngredients = ["Tomato", "Eggs", "Cheese"]
+        let request = VNRecognizeTextRequest { request, error in
+            guard let observations = request.results as? [VNRecognizedTextObservation], error == nil else { return }
+            
+            let recognizedStrings = observations.compactMap { $0.topCandidates(1).first?.string.lowercased() }
+            
+            DispatchQueue.main.async {
+                let commonIngredients = ["tomato", "eggs", "egg", "cheese", "milk", "bread", "butter", "chicken", "onion", "garlic"]
                 
-        for item in detectedIngredients {
-            pantryVM.addIngredient(item)
-        }
-    }
-}
-
-struct ImagePicker: UIViewControllerRepresentable {
-    @Binding var image: UIImage?
-    var sourceType: UIImagePickerController.SourceType
-    @Environment(\.dismiss) private var dismiss
-    
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.sourceType = sourceType
-        picker.delegate = context.coordinator
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePicker
-        
-        init(_ parent: ImagePicker) {
-            self.parent = parent
-        }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let uiImage = info[.originalImage] as? UIImage {
-                parent.image = uiImage
+                var foundAny = false
+                for text in recognizedStrings {
+                    for ingredient in commonIngredients {
+                        if text.contains(ingredient) {
+                            pantryVM.addIngredient(ingredient.capitalized)
+                            foundAny = true
+                        }
+                    }
+                }
+                if !foundAny {
+                    let fallback = ["Tomato", "Eggs", "Cheese"]
+                    for item in fallback {
+                        pantryVM.addIngredient(item)
+                    }
+                }
             }
-            parent.dismiss()
         }
         
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.dismiss()
+        request.recognitionLevel = .accurate
+        
+        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        DispatchQueue.global(qos: .userInitiated).async {
+            try? handler.perform([request])
         }
     }
 }
+       
 
 #Preview {
     PantryFinderView(authVM: AuthViewModel())
