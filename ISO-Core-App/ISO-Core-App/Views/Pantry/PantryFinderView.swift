@@ -8,6 +8,9 @@ struct PantryFinderView: View {
     @StateObject private var pantryVM = PantryViewModel()
     @State private var newIngredient: String = ""
     
+    @State private var pantryInventory: [PantryItem] = []
+        @State private var showingAddInventorySheet: Bool = false
+    
     
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var inputImage: UIImage?
@@ -19,6 +22,24 @@ struct PantryFinderView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     headerSection
+                    
+                    let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
+                                        if expiringCount > 0 {
+                                            HStack {
+                                                Image(systemName: "exclamationmark.triangle.fill")
+                                                    .foregroundColor(.orange)
+                                                Text("\(expiringCount) ingredients expiring soon!")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.semibold)
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption)
+                                                    .foregroundColor(.gray)
+                                            }
+                                            .padding()
+                                            .background(Color.yellow.opacity(0.15))
+                                            .cornerRadius(12)
+                                        }
                     fridgeInputSection
                     ingredientsList
                     resultsSection
@@ -27,6 +48,27 @@ struct PantryFinderView: View {
                 .padding(.bottom, 90)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    showingAddInventorySheet = true
+                                } label: {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.orange)
+                                        .padding(10)
+                                        .background(Color.orange.opacity(0.15))
+                                        .clipShape(Circle())
+                                }
+                            }
+                        }
+                        
+                        .sheet(isPresented: $showingAddInventorySheet) {
+                            AddInventoryView { newItem in
+                                pantryInventory.append(newItem)
+                                pantryVM.addIngredient(newItem.name)
+                            }
+                        }
             .onChange(of: selectedPhotoItem) { newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),

@@ -5,7 +5,7 @@ import AVFoundation
 struct RecipeCardView: View {
     
     let recipe: MockRecipe
-    @StateObject private var favoritesManager = FavoritesManager.shared
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
     @State private var checkedIngredients: Set<String> = []
     
 
@@ -57,20 +57,25 @@ struct RecipeCardView: View {
                 .frame(height: 350)
             
             Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                                    favoritesManager.toggleFavorite(recipe)
-                                }
-            } label: {
-                Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(favoritesManager.isFavorite(recipe) ? .red : .white)
-                    .padding(12)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-            }
-            .padding(.top, 60)
-            .padding(.trailing, 20)
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                                favoritesManager.toggleFavorite(recipe)
+                                print("❤️ Toggled favorite for: \(recipe.title). Total favs: \(favoritesManager.favoriteRecipes.count)")
+                            }
+                        } label: {
+                            Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(favoritesManager.isFavorite(recipe) ? .white : .white)
+                                .padding(14)
+                                .background(FavoritesManager.shared.isFavorite(recipe) ? Color.red : Color.black.opacity(0.4))
+                                .clipShape(Circle())
+                                .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
+                        }
+                        .buttonStyle(PlainButtonStyle()) // 👈 List / ScrollView එකේ default button styles overlap වීම වැළැක්වීමට
+                        .contentShape(Circle())
+                        .allowsHitTesting(true) // 👈 Scroll gesture එකට වඩා button touch එකට මුල්තැන දීමට
+                        .padding(.top, 55)
+                        .padding(.trailing, 20)
+                        .zIndex(999)
         }
     }
     
