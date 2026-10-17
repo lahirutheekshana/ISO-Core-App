@@ -3,15 +3,16 @@ import SwiftUI
 struct PantryFinderView: View {
     
     @ObservedObject var authVM: AuthViewModel
-    
     @StateObject private var pantryVM = PantryViewModel()
-    
     @State private var newIngredient: String = ""
+    
+    @State private var showingImagePicker = false
+    @State private var inputImage: UIImage?
+    @State private var sourceType: UIImagePickerController.SourceType = .camera
     
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     
     var body: some View {
-        
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
@@ -24,6 +25,9 @@ struct PantryFinderView: View {
                 .padding(.bottom, 90)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .sheet(isPresented: $showingImagePicker, onDismiss: processScannedImage) {
+                            ImagePicker(image: $inputImage, sourceType: sourceType)
+                        }
         }
     }
     
@@ -46,7 +50,7 @@ struct PantryFinderView: View {
     }
     
     private var fridgeInputSection: some View {
-        HStack {
+        HStack(spacing:12){
             Image(systemName: "plus.circle")
                 .foregroundColor(.secondary)
             
@@ -56,6 +60,22 @@ struct PantryFinderView: View {
                     newIngredient = ""
                 }
                 .submitLabel(.done)
+            
+            Button{
+                #if targetEnvironment(simulator)
+                self.sourceType = .photoLibrary
+                #else
+                self.sourceType = .camera
+                #endif
+                self.showingImagePicker = true
+            } label: {
+                Image(systemName: "camera.fill")
+                    .font(.system(size:18,weight: .medium))
+                    .foregroundColor(.orange)
+                    .padding(8)
+                    .background(Color.orange.opacity(0.12))
+                    .clipShape(Circle())
+            }
             
             if !newIngredient.isEmpty {
                 Button {
@@ -159,6 +179,54 @@ struct PantryFinderView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func processScannedImage() {
+        guard let image = inputImage else { return }
+        
+        let detectedIngredients = ["Tomato", "Eggs", "Cheese"]
+                
+        for item in detectedIngredients {
+            pantryVM.addIngredient(item)
+        }
+    }
+}
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    var sourceType: UIImagePickerController.SourceType
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                parent.image = uiImage
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }

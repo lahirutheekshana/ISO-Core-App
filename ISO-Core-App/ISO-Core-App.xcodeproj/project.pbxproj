@@ -298,6 +298,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ISO-Core-App/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "SmartChef needs to use your camera to scan your fridge ingredients";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "SmartChef uses Face ID to quickly and securely log you into pantry and saved recipes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -332,6 +333,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ISO-Core-App/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "SmartChef needs to use your camera to scan your fridge ingredients";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "SmartChef uses Face ID to quickly and securely log you into pantry and saved recipes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
