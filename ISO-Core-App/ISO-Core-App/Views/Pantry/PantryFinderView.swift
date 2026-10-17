@@ -23,6 +23,27 @@ struct PantryFinderView: View {
                 VStack(spacing: 24) {
                     headerSection
                     
+                    NavigationLink(destination: PantryInventoryListView(pantryVM: pantryVM)) {
+                                            HStack {
+                                                Image(systemName: "list.bullet.rectangle.portrait.fill")
+                                                    .font(.title3)
+                                                Text("View Stored Pantry Items")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.semibold)
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption)
+                                                    .fontWeight(.bold)
+                                            }
+                                            .foregroundColor(.orange)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 12)
+                                            .background(Color.orange.opacity(0.12))
+                                            .cornerRadius(14)
+                                        }
+                    
+                    
+                    
                     let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
                                         if expiringCount > 0 {
                                             HStack {
