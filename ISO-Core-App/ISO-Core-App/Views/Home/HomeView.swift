@@ -342,12 +342,12 @@ struct HeroCardView: View {
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
-                        Text("⏱️ 45 min")
+                        Text("45 min")
                     }
 
                     HStack(spacing: 4) {
                         Image(systemName: "flame")
-                        Text("🔥 650 kcal")
+                        Text("650 kcal")
                     }
                 }
                 .font(.caption)

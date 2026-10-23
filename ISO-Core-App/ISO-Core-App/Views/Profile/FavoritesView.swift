@@ -4,7 +4,7 @@ import Combine
 struct FavoritesView: View {
     
     @ObservedObject var authVM: AuthViewModel
-    @StateObject private var favoritesManager = FavoritesManager.shared
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
     
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     

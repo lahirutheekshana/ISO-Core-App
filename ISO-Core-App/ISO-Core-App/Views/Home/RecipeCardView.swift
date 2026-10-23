@@ -59,7 +59,7 @@ struct RecipeCardView: View {
             Button {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
                                 favoritesManager.toggleFavorite(recipe)
-                                print("❤️ Toggled favorite for: \(recipe.title). Total favs: \(favoritesManager.favoriteRecipes.count)")
+                                print("Toggled favorite for: \(recipe.title). Total favs: \(favoritesManager.favoriteRecipes.count)")
                             }
                         } label: {
                             Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
@@ -70,9 +70,9 @@ struct RecipeCardView: View {
                                 .clipShape(Circle())
                                 .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(PlainButtonStyle()) // 👈 List / ScrollView එකේ default button styles overlap වීම වැළැක්වීමට
+                        .buttonStyle(PlainButtonStyle())
                         .contentShape(Circle())
-                        .allowsHitTesting(true) // 👈 Scroll gesture එකට වඩා button touch එකට මුල්තැන දීමට
+                        .allowsHitTesting(true)
                         .padding(.top, 55)
                         .padding(.trailing, 20)
                         .zIndex(999)
@@ -155,7 +155,6 @@ struct RecipeCardView: View {
             
             ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, step in
                 HStack(alignment: .top, spacing: 16) {
-                    // Step Number Bubble
                     Text("\(index + 1)")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -168,8 +167,7 @@ struct RecipeCardView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                             .lineSpacing(4)
-                        
-                        // Voice Reader & Timer Actions
+                    
                         HStack(spacing: 16) {
                             Button {
                                 readAloud(text: step, index: index)
@@ -182,10 +180,8 @@ struct RecipeCardView: View {
                                 .foregroundColor(.orange)
                             }
                             
-                            // Mock Timer Button (conditional based on text)
                             if step.lowercased().contains("min") || step.lowercased().contains("hour") {
                                 Button {
-                                    // Mock start timer
                                 } label: {
                                     HStack(spacing: 4) {
                                         Image(systemName: "timer")
@@ -219,7 +215,6 @@ struct RecipeCardView: View {
         currentlyReadingStep = index
         speechSynthesizer.speak(utterance)
         
-        // Very basic mock reset (In a real app, use AVSpeechSynthesizerDelegate)
         DispatchQueue.main.asyncAfter(deadline: .now() + Double(text.count) * 0.1) {
             if currentlyReadingStep == index {
                 currentlyReadingStep = nil
@@ -228,7 +223,6 @@ struct RecipeCardView: View {
     }
 }
 
-// MARK: - Subcomponents
 
 struct NutritionalTag: View {
     let icon: String
