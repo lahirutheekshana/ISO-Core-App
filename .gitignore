@@ -1,2 +1,4 @@
 *.DS_Store
-.env
+.envDerivedData/
+*.xcuserstate
+.DS_Store
