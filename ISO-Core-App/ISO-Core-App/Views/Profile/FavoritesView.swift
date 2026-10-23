@@ -10,11 +10,13 @@ struct FavoritesView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 20) {
-                    if favoritesManager.favoriteRecipes.isEmpty {
+            Group {
+                if favoritesManager.favoriteRecipes.isEmpty {
+                    ScrollView(showsIndicators: false) {
                         emptyStateView
-                    } else {
+                    }
+                } else {
+                    ScrollView(showsIndicators: false) {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(favoritesManager.favoriteRecipes) { recipe in
                                 NavigationLink(destination: RecipeCardView(recipe: recipe)) {
@@ -24,9 +26,9 @@ struct FavoritesView: View {
                             }
                         }
                         .padding(.horizontal)
+                        .padding(.top, 10)
                     }
                 }
-                .padding(.top, 10)
             }
             .navigationTitle("Favorites")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())

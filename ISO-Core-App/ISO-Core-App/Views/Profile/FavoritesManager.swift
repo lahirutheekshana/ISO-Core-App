@@ -1,10 +1,11 @@
 import SwiftUI
 import Combine
 
-class FavoritesManager: ObservableObject {
+@MainActor
+final class FavoritesManager: ObservableObject {
     static let shared = FavoritesManager()
     
-    @Published var favoriteRecipes: [MockRecipe] = []
+    @Published private(set) var favoriteRecipes: [MockRecipe] = []
     
     private init() {}
     
@@ -13,8 +14,8 @@ class FavoritesManager: ObservableObject {
     }
     
     func toggleFavorite(_ recipe: MockRecipe) {
-        if isFavorite(recipe) {
-            favoriteRecipes.removeAll(where: { $0.id == recipe.id })
+        if let existingIndex = favoriteRecipes.firstIndex(where: { $0.id == recipe.id }) {
+            favoriteRecipes.remove(at: existingIndex)
         } else {
             favoriteRecipes.append(recipe)
         }

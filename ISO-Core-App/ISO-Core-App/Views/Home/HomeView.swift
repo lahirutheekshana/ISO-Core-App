@@ -185,7 +185,15 @@ struct HomeView: View {
                 .font(.title3)
                 .fontWeight(.bold)
 
-            HeroCardView()
+            ZStack(alignment: .topTrailing) {
+                NavigationLink(destination: RecipeCardView(recipe: HeroCardView.recipeOfTheDay)) {
+                    HeroCardView()
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                HeroFavoriteButton(recipe: HeroCardView.recipeOfTheDay)
+                    .padding(16)
+            }
         }
     }
 
@@ -225,58 +233,69 @@ struct HomeView: View {
 
 struct SimpleRecipeCardView: View {
     let recipe: TheMealDBRecipe
-    @State private var navigateToRecipe = false
-
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
+    
+    private var mockRecipe: MockRecipe {
+        MockRecipe(
+            id: recipe.id,
+            title: recipe.title,
+            time: "45 min",
+            rating: "4.5",
+            imageURL: recipe.imageURL,
+            category: recipe.category
+        )
+    }
     
     var body: some View {
-        NavigationStack {
-            
-            VStack(alignment: .leading, spacing: 8) {
-                
-                AsyncImage(url: URL(string: recipe.imageURL)) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
-                    Color.gray.opacity(0.2)
+        ZStack(alignment: .topTrailing) {
+            NavigationLink(destination: RecipeCardView(recipe: mockRecipe)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    AsyncImage(url: URL(string: recipe.imageURL)) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        Color.gray.opacity(0.2)
+                    }
+                    .frame(height: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    
+                    Text(recipe.title)
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .lineLimit(1)
+                    
+                    HStack {
+                        Text(recipe.category)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange.opacity(0.15))
+                            .foregroundColor(.orange)
+                            .cornerRadius(8)
+                        Spacer()
+                    }
                 }
-                .frame(height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(recipe.title)
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .lineLimit(1)
-                
-                HStack {
-                    Text(recipe.category)
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.orange.opacity(0.15))
-                        .foregroundColor(.orange)
-                        .cornerRadius(8)
-                    Spacer()
-                }
+                .padding(10)
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
-            .padding(10)
-            .background(Color(.systemBackground))
-            .cornerRadius(16)
-            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-            .onTapGesture {
-                navigateToRecipe = true
-            }
+            .buttonStyle(PlainButtonStyle())
             
-            // 5. Tell SwiftUI which view to open when the state turns true
-            .navigationDestination(isPresented: $navigateToRecipe) {
-                RecipeCardView(recipe: MockRecipe(
-                    id: recipe.id,
-                    title: recipe.title,
-                    time: "45 min",
-                    rating: "4.5",
-                    imageURL: recipe.imageURL,
-                    category: recipe.category,
-                    ingredients:  ["A", "B", "C"]
-                ))
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                    favoritesManager.toggleFavorite(mockRecipe)
+                }
+            } label: {
+                Image(systemName: favoritesManager.isFavorite(mockRecipe) ? "heart.fill" : "heart")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(favoritesManager.isFavorite(mockRecipe) ? .red : .white)
+                    .padding(8)
+                    .background(Color.black.opacity(0.35))
+                    .clipShape(Circle())
             }
+            .buttonStyle(.plain)
+            .padding(.top, 18)
+            .padding(.trailing, 18)
         }
     }
 }
@@ -284,12 +303,43 @@ struct SimpleRecipeCardView: View {
 
 
 
+struct HeroFavoriteButton: View {
+    let recipe: MockRecipe
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
+    
+    var body: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                favoritesManager.toggleFavorite(recipe)
+            }
+        } label: {
+            Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
+                .font(.system(size: 18))
+                .foregroundColor(favoritesManager.isFavorite(recipe) ? .red : .primary)
+                .padding(10)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 struct HeroCardView: View {
-    @State private var isFavorite = false
+    static let recipeOfTheDay = MockRecipe(
+        id: "recipe-of-the-day-beef-wellington",
+        title: "Beef Wellington",
+        time: "45 min",
+        rating: "4.8",
+        imageURL: "https://www.themealdb.com/images/media/meals/1529444830.jpg",
+        category: "Beef",
+        calories: 650,
+        servings: 4
+    )
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            AsyncImage(url: URL(string: "https://www.themealdb.com/images/media/meals/1529444830.jpg")) { phase in
+            AsyncImage(url: URL(string: Self.recipeOfTheDay.imageURL)) { phase in
                 switch phase {
                 case .empty:
                     Rectangle().fill(Color.gray.opacity(0.2)).overlay(ProgressView())
@@ -311,29 +361,8 @@ struct HeroCardView: View {
             )
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-            VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                            isFavorite.toggle()
-                        }
-                    } label: {
-                        Image(systemName: isFavorite ? "heart.fill" : "heart")
-                            .font(.system(size: 18))
-                            .foregroundColor(isFavorite ? .red : .primary)
-                            .padding(10)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                    }
-                    .padding(16)
-                }
-                Spacer()
-            }
-
             VStack(alignment: .leading, spacing: 10) {
-                Text("Beef Wellington")
+                Text(Self.recipeOfTheDay.title)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -342,12 +371,12 @@ struct HeroCardView: View {
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
-                        Text("45 min")
+                        Text(Self.recipeOfTheDay.time)
                     }
 
                     HStack(spacing: 4) {
                         Image(systemName: "flame")
-                        Text("650 kcal")
+                        Text("\(Self.recipeOfTheDay.calories) kcal")
                     }
                 }
                 .font(.caption)

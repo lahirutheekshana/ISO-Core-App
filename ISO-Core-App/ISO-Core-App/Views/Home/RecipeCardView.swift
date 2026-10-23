@@ -37,7 +37,7 @@ struct RecipeCardView: View {
     }
     
     private var headerSection: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack {
             AsyncImage(url: URL(string: recipe.imageURL)) { phase in
                 switch phase {
                 case .empty:
@@ -55,36 +55,31 @@ struct RecipeCardView: View {
             
             LinearGradient(colors: [.clear, .black.opacity(0.4)], startPoint: .center, endPoint: .bottom)
                 .frame(height: 350)
-            
-            Button {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                                favoritesManager.toggleFavorite(recipe)
-                                print("Toggled favorite for: \(recipe.title). Total favs: \(favoritesManager.favoriteRecipes.count)")
-                            }
-                        } label: {
-                            Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(favoritesManager.isFavorite(recipe) ? .white : .white)
-                                .padding(14)
-                                .background(FavoritesManager.shared.isFavorite(recipe) ? Color.red : Color.black.opacity(0.4))
-                                .clipShape(Circle())
-                                .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .contentShape(Circle())
-                        .allowsHitTesting(true)
-                        .padding(.top, 55)
-                        .padding(.trailing, 20)
-                        .zIndex(999)
         }
     }
     
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(recipe.title)
-                .font(.system(size: 28, weight: .bold, design: .serif))
-                .foregroundColor(.primary)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .top, spacing: 12) {
+                Text(recipe.title)
+                    .font(.system(size: 28, weight: .bold, design: .serif))
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                        favoritesManager.toggleFavorite(recipe)
+                    }
+                } label: {
+                    Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(favoritesManager.isFavorite(recipe) ? .red : .secondary)
+                        .padding(8)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
             
             HStack(spacing: 4) {
                 Image(systemName: "star.fill").foregroundColor(.yellow)
