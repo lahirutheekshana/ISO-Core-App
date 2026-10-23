@@ -3,3 +3,4 @@
 .env
 DerivedData/
 *.xcuserstate
+xcuserdata/
