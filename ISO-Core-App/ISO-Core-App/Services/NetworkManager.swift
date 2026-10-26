@@ -54,7 +54,6 @@ struct TheMealDBRecipe: Codable, Identifiable {
     let strCategory: String?
     let strMealThumb: String?
     
-    // UI එකට ලෙහෙසි වන පරිදි Computed Properties
     
     var id: String { idMeal }
     var title: String { strMeal }
