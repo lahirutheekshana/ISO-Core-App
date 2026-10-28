@@ -11,6 +11,17 @@ struct PantryInventoryListView: View {
     @State private var updatedIngredientName: String = ""
     @State private var showingUpdateAlert: Bool = false
     
+    
+    private var pantryShareText: String {
+            if pantryVM.fridgeIngredients.isEmpty {
+                return "My Pantry is currently empty!"
+            }
+            let itemsList = pantryVM.fridgeIngredients.enumerated()
+                .map { "\($0.offset + 1). \($0.element)" }
+                .joined(separator: "\n")
+            return "🛒 My Pantry Items List:\n\n\(itemsList)\n\nShared via SmartChef App"
+        }
+    
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
