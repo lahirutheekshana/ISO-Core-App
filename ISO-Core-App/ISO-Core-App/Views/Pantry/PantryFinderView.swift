@@ -3,14 +3,12 @@ import PhotosUI
 import Vision
 
 struct PantryFinderView: View {
-    
     @ObservedObject var authVM: AuthViewModel
     @StateObject private var pantryVM = PantryViewModel()
     @State private var newIngredient: String = ""
     
     @State private var pantryInventory: [PantryItem] = []
-        @State private var showingAddInventorySheet: Bool = false
-    
+    @State private var showingAddInventorySheet: Bool = false
     
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var inputImage: UIImage?
@@ -24,43 +22,42 @@ struct PantryFinderView: View {
                     headerSection
                     
                     NavigationLink(destination: PantryInventoryListView(pantryVM: pantryVM)) {
-                                            HStack {
-                                                Image(systemName: "list.bullet.rectangle.portrait.fill")
-                                                    .font(.title3)
-                                                Text("View Stored Pantry Items")
-                                                    .font(.subheadline)
-                                                    .fontWeight(.semibold)
-                                                Spacer()
-                                                Image(systemName: "chevron.right")
-                                                    .font(.caption)
-                                                    .fontWeight(.bold)
-                                            }
-                                            .foregroundColor(.orange)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 12)
-                                            .background(Color.orange.opacity(0.12))
-                                            .cornerRadius(14)
-                                        }
-                    
-                    
+                        HStack {
+                            Image(systemName: "list.bullet.rectangle.portrait.fill")
+                                .font(.title3)
+                            Text("View Stored Pantry Items")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.orange.opacity(0.12))
+                        .cornerRadius(14)
+                    }
                     
                     let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
-                                        if expiringCount > 0 {
-                                            HStack {
-                                                Image(systemName: "exclamationmark.triangle.fill")
-                                                    .foregroundColor(.orange)
-                                                Text("\(expiringCount) ingredients expiring soon!")
-                                                    .font(.subheadline)
-                                                    .fontWeight(.semibold)
-                                                Spacer()
-                                                Image(systemName: "chevron.right")
-                                                    .font(.caption)
-                                                    .foregroundColor(.gray)
-                                            }
-                                            .padding()
-                                            .background(Color.yellow.opacity(0.15))
-                                            .cornerRadius(12)
-                                        }
+                    if expiringCount > 0 {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                            Text("\(expiringCount) ingredients expiring soon!")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color.yellow.opacity(0.15))
+                        .cornerRadius(12)
+                    }
+                    
                     fridgeInputSection
                     ingredientsList
                     resultsSection
@@ -69,27 +66,26 @@ struct PantryFinderView: View {
                 .padding(.bottom, 90)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button {
-                                    showingAddInventorySheet = true
-                                } label: {
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.orange)
-                                        .padding(10)
-                                        .background(Color.orange.opacity(0.15))
-                                        .clipShape(Circle())
-                                }
-                            }
-                        }
-                        
-                        .sheet(isPresented: $showingAddInventorySheet) {
-                            AddInventoryView { newItem in
-                                pantryInventory.append(newItem)
-                                pantryVM.addIngredient(newItem.name)
-                            }
-                        }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingAddInventorySheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.orange)
+                            .padding(10)
+                            .background(Color.orange.opacity(0.15))
+                            .clipShape(Circle())
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddInventorySheet) {
+                AddInventoryView { newItem in
+                    pantryInventory.append(newItem)
+                    pantryVM.addIngredient(newItem.name)
+                }
+            }
             .onChange(of: selectedPhotoItem) { newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
@@ -127,7 +123,7 @@ struct PantryFinderView: View {
             
             TextField("e.g. Eggs, Tomato, Cheese...", text: $newIngredient)
                 .onSubmit {
-                    pantryVM.addIngredient(newIngredient)
+                    pantryVM.addSearchIngredient(newIngredient)
                     newIngredient = ""
                 }
                 .submitLabel(.done)
@@ -143,7 +139,7 @@ struct PantryFinderView: View {
             
             if !newIngredient.isEmpty {
                 Button {
-                    pantryVM.addIngredient(newIngredient)
+                    pantryVM.addSearchIngredient(newIngredient)
                     newIngredient = ""
                 } label: {
                     Text("Add")
@@ -164,14 +160,14 @@ struct PantryFinderView: View {
     
     private var ingredientsList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if !pantryVM.fridgeIngredients.isEmpty {
-                Text("Your Fridge:")
+            if !pantryVM.searchIngredients.isEmpty {
+                Text("Your Search Ingredients:")
                     .font(.headline)
                     .foregroundColor(.primary)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(pantryVM.fridgeIngredients, id: \.self) { ingredient in
+                        ForEach(pantryVM.searchIngredients, id: \.self) { ingredient in
                             HStack(spacing: 6) {
                                 Text(ingredient)
                                     .font(.subheadline)
@@ -179,7 +175,7 @@ struct PantryFinderView: View {
                                 
                                 Button {
                                     withAnimation {
-                                        pantryVM.removeIngredient(ingredient)
+                                        pantryVM.removeSearchIngredient(ingredient)
                                     }
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")
@@ -212,7 +208,7 @@ struct PantryFinderView: View {
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 40)
-            } else if pantryVM.fridgeIngredients.isEmpty {
+            } else if pantryVM.searchIngredients.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "tray.fill")
                         .font(.largeTitle)
@@ -261,7 +257,7 @@ struct PantryFinderView: View {
                 for text in recognizedStrings {
                     for ingredient in commonIngredients {
                         if text.contains(ingredient) {
-                            pantryVM.addIngredient(ingredient.capitalized)
+                            pantryVM.addSearchIngredient(ingredient.capitalized)
                             foundAny = true
                         }
                     }
@@ -269,7 +265,7 @@ struct PantryFinderView: View {
                 if !foundAny {
                     let fallback = ["Tomato", "Eggs", "Cheese"]
                     for item in fallback {
-                        pantryVM.addIngredient(item)
+                        pantryVM.addSearchIngredient(item)
                     }
                 }
             }
@@ -283,7 +279,6 @@ struct PantryFinderView: View {
         }
     }
 }
-       
 
 #Preview {
     PantryFinderView(authVM: AuthViewModel())

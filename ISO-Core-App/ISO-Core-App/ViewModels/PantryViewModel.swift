@@ -7,6 +7,8 @@ import FirebaseFirestore
 @MainActor
 class PantryViewModel: ObservableObject {
     @Published var fridgeIngredients: [String] = []
+    @Published var searchIngredients: [String] = []
+    
     @Published var matchedRecipes: [TheMealDBRecipe] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
@@ -18,14 +20,13 @@ class PantryViewModel: ObservableObject {
         fetchPantryItemsFromFirebase()
     }
     
-    func addIngredient(_ ingredient: String) {
+    // MARK: - Search Ingredients Functions
+    func addSearchIngredient(_ ingredient: String) {
         let cleanIngredient = ingredient.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanIngredient.isEmpty else { return }
         
-        if !fridgeIngredients.contains(where: { $0.caseInsensitiveCompare(cleanIngredient) == .orderedSame }) {
-            fridgeIngredients.append(cleanIngredient)
-            
-            saveIngredientToFirebase(cleanIngredient)
+        if !searchIngredients.contains(where: { $0.caseInsensitiveCompare(cleanIngredient) == .orderedSame }) {
+            searchIngredients.append(cleanIngredient)
             
             Task {
                 await fetchMatchingRecipes()
@@ -33,17 +34,31 @@ class PantryViewModel: ObservableObject {
         }
     }
     
-    func removeIngredient(_ ingredient: String) {
-        fridgeIngredients.removeAll { $0 == ingredient }
-        
-        deleteIngredientFromFirebase(ingredient)
+    func removeSearchIngredient(_ ingredient: String) {
+        searchIngredients.removeAll { $0 == ingredient }
         
         Task {
             await fetchMatchingRecipes()
         }
     }
     
-    // MARK: - Update / Edit Ingredient Function (Newly Added)
+    // MARK: - Pantry Inventory Functions
+    func addIngredient(_ ingredient: String) {
+        let cleanIngredient = ingredient.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanIngredient.isEmpty else { return }
+        
+        if !fridgeIngredients.contains(where: { $0.caseInsensitiveCompare(cleanIngredient) == .orderedSame }) {
+            fridgeIngredients.append(cleanIngredient)
+            saveIngredientToFirebase(cleanIngredient)
+        }
+    }
+    
+    func removeIngredient(_ ingredient: String) {
+        fridgeIngredients.removeAll { $0 == ingredient }
+        deleteIngredientFromFirebase(ingredient)
+    }
+    
+    // MARK: - Update / Edit Ingredient Function
     func updateIngredient(oldItem: String, newItem: String) {
         let cleanNewItem = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanNewItem.isEmpty else { return }
@@ -55,7 +70,7 @@ class PantryViewModel: ObservableObject {
             
             db.collection("users").document(userId).collection("pantry")
                 .whereField("name", isEqualTo: oldItem)
-                .getDocuments { [weak self] snapshot, error in
+                .getDocuments { snapshot, error in
                     guard let documents = snapshot?.documents else { return }
                     for doc in documents {
                         doc.reference.updateData(["name": cleanNewItem]) { error in
@@ -66,19 +81,20 @@ class PantryViewModel: ObservableObject {
                             }
                         }
                     }
-                    
-                    Task {
-                        await self?.fetchMatchingRecipes()
-                    }
                 }
         }
     }
     
+    // MARK: - Fetch Recipes using searchIngredients (Fixed!)
     private func fetchMatchingRecipes() async {
-        guard let mainIngredient = fridgeIngredients.first else {
+        // ✅ මෙතන fridgeIngredients වෙනුවට searchIngredients.first පාවිච්චි කළ යුතුය!
+        guard let rawIngredient = searchIngredients.first else {
             self.matchedRecipes = []
             return
         }
+        
+        // API එකට match වෙන්න lowercase සහ trim කිරීම
+        let mainIngredient = rawIngredient.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         
         isLoading = true
         errorMessage = nil
@@ -90,6 +106,7 @@ class PantryViewModel: ObservableObject {
         }
         
         let urlString = "https://www.themealdb.com/api/json/v1/1/filter.php?i=\(encodedIngredient)"
+        print("🔍 API URL: \(urlString)")
         
         do {
             let response: MealDBResponse = try await networkManager.fetch(from: urlString)
@@ -103,7 +120,6 @@ class PantryViewModel: ObservableObject {
     }
     
     // MARK: - Firebase Functions
-    
     private func saveIngredientToFirebase(_ item: String) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
@@ -143,11 +159,6 @@ class PantryViewModel: ObservableObject {
                 }
                 
                 self.fridgeIngredients = Array(Set(loadedItems))
-                if !self.fridgeIngredients.isEmpty {
-                    Task {
-                        await self.fetchMatchingRecipes()
-                    }
-                }
             }
     }
     
