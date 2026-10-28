@@ -2,8 +2,14 @@ import SwiftUI
 
 struct PantryInventoryListView: View {
     @ObservedObject var pantryVM: PantryViewModel
-    @State private var newIngredientName: String = ""
-    @State private var showingAddAlert: Bool = false
+    
+
+    @State private var showingAddInventorySheet: Bool = false
+    
+    // Edit / Update States
+    @State private var itemToEdit: String? = nil
+    @State private var updatedIngredientName: String = ""
+    @State private var showingUpdateAlert: Bool = false
     
     var body: some View {
         ZStack {
@@ -36,6 +42,30 @@ struct PantryInventoryListView: View {
                                     .fontWeight(.medium)
                                 
                                 Spacer()
+                                
+                                // 1. Update (Edit) Button
+                                Button {
+                                    itemToEdit = ingredient
+                                    updatedIngredientName = ingredient
+                                    showingUpdateAlert = true
+                                } label: {
+                                    Image(systemName: "pencil.circle.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(.blue)
+                                }
+                                .buttonStyle(.borderless)
+                                
+                                // 2. Delete Button
+                                Button {
+                                    withAnimation {
+                                        pantryVM.removeIngredient(ingredient)
+                                    }
+                                } label: {
+                                    Image(systemName: "trash.circle.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(.red.opacity(0.8))
+                                }
+                                .buttonStyle(.borderless)
                             }
                             .padding(.vertical, 4)
                         }
@@ -54,7 +84,7 @@ struct PantryInventoryListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    showingAddAlert = true
+                    showingAddInventorySheet = true
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 16, weight: .bold))
@@ -65,19 +95,31 @@ struct PantryInventoryListView: View {
                 }
             }
         }
-        .alert("Add New Ingredient", isPresented: $showingAddAlert) {
-            TextField("e.g. Butter, Milk, Garlic", text: $newIngredientName)
-            Button("Add") {
-                if !newIngredientName.isEmpty {
-                    pantryVM.addIngredient(newIngredientName)
-                    newIngredientName = ""
+        // Add Sheet Modal (AddInventoryView)
+        .sheet(isPresented: $showingAddInventorySheet) {
+            AddInventoryView { newItem in
+                pantryVM.addIngredient(newItem.name)
+            }
+        }
+        // Update Alert Modal
+        .alert("Update Ingredient", isPresented: $showingUpdateAlert) {
+            TextField("Ingredient Name", text: $updatedIngredientName)
+            Button("Save") {
+                if let oldItem = itemToEdit,
+                   !updatedIngredientName.trimmingCharacters(in: .whitespaces).isEmpty {
+                    
+                    pantryVM.updateIngredient(oldItem: oldItem, newItem: updatedIngredientName)
+                    
+                    itemToEdit = nil
+                    updatedIngredientName = ""
                 }
             }
             Button("Cancel", role: .cancel) {
-                newIngredientName = ""
+                itemToEdit = nil
+                updatedIngredientName = ""
             }
         } message: {
-            Text("Enter the name of the ingredient to save to your pantry.")
+            Text("Edit the name of the selected pantry item.")
         }
     }
 }

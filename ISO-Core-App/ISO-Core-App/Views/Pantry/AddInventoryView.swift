@@ -13,6 +13,7 @@ struct AddInventoryView: View {
     @State private var expiryReminder: Bool = true
     @State private var notes: String = ""
     
+    
     let categories = ["Vegetables", "Dairy", "Fruits", "Meat", "Spices", "Grains"]
     let locations = ["Fridge", "Pantry", "Freezer"]
     let units = ["pcs", "kg", "g", "l", "ml", "pack"]

@@ -38,9 +38,39 @@ class PantryViewModel: ObservableObject {
         
         deleteIngredientFromFirebase(ingredient)
         
-        
         Task {
             await fetchMatchingRecipes()
+        }
+    }
+    
+    // MARK: - Update / Edit Ingredient Function (Newly Added)
+    func updateIngredient(oldItem: String, newItem: String) {
+        let cleanNewItem = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanNewItem.isEmpty else { return }
+        
+        if let index = fridgeIngredients.firstIndex(of: oldItem) {
+            fridgeIngredients[index] = cleanNewItem
+            
+            guard let userId = Auth.auth().currentUser?.uid else { return }
+            
+            db.collection("users").document(userId).collection("pantry")
+                .whereField("name", isEqualTo: oldItem)
+                .getDocuments { [weak self] snapshot, error in
+                    guard let documents = snapshot?.documents else { return }
+                    for doc in documents {
+                        doc.reference.updateData(["name": cleanNewItem]) { error in
+                            if let error = error {
+                                print("Error updating in Firebase: \(error.localizedDescription)")
+                            } else {
+                                print("✏️ Pantry item updated in Firebase!")
+                            }
+                        }
+                    }
+                    
+                    Task {
+                        await self?.fetchMatchingRecipes()
+                    }
+                }
         }
     }
     
@@ -72,7 +102,7 @@ class PantryViewModel: ObservableObject {
         isLoading = false
     }
     
-    //firebase funtion
+    // MARK: - Firebase Functions
     
     private func saveIngredientToFirebase(_ item: String) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
@@ -90,6 +120,7 @@ class PantryViewModel: ObservableObject {
             }
         }
     }
+    
     func fetchPantryItemsFromFirebase() {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
@@ -111,7 +142,6 @@ class PantryViewModel: ObservableObject {
                     }
                 }
                 
-                
                 self.fridgeIngredients = Array(Set(loadedItems))
                 if !self.fridgeIngredients.isEmpty {
                     Task {
@@ -120,6 +150,7 @@ class PantryViewModel: ObservableObject {
                 }
             }
     }
+    
     private func deleteIngredientFromFirebase(_ item: String) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
