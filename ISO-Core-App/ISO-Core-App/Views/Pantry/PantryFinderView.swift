@@ -40,10 +40,12 @@ struct PantryFinderView: View {
                         .cornerRadius(14)
                     }
                     
-                    // ✅ Fixed: Wrapped Expiring Soon Alert inside NavigationLink to open PantryInventoryListView
+                    // ✅ Expiring Soon Alert Banner (Navigates to ExpiringItemsView)
                     let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
                     if expiringCount > 0 {
-                        NavigationLink(destination: PantryInventoryListView(pantryVM: pantryVM)) {
+                        let expiringItemsList = pantryInventory.filter { $0.isExpiringSoon }
+                        
+                        NavigationLink(destination: ExpiringItemsView(expiringItems: expiringItemsList, pantryVM: pantryVM)) {
                             HStack {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
