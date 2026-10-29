@@ -166,10 +166,10 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Firebase Functions (FirebaseManager එකට හරියටම Connect කර ඇත)
+  
     
     func uploadProfileImageToFirebase(data: Data) {
-        // Firebase Auth එකෙන් හෝ CurrentUser එකෙන් direct UID එක ලබා ගැනීම
+      
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
         isUploading = true
