@@ -25,6 +25,7 @@ struct ProfileView: View {
             List {
                 Section {
                     HStack(spacing: 16) {
+                        
                         PhotosPicker(selection: $selectedItem, matching: .images) {
                             ZStack {
                                 if let selectedImageData, let uiImage = UIImage(data: selectedImageData) {
@@ -49,6 +50,7 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        .buttonStyle(.plain)
                         .onChange(of: selectedItem) { newItem in
                             Task {
                                 if let data = try? await newItem?.loadTransferable(type: Data.self) {
@@ -58,12 +60,14 @@ struct ProfileView: View {
                             }
                         }
                         
+                      
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(firebaseManager.currentUser?.fullName ?? "lahiru teek")
                                     .font(.title3)
                                     .fontWeight(.bold)
                                 
+                              
                                 Button {
                                     newName = firebaseManager.currentUser?.fullName ?? ""
                                     isEditingName = true
@@ -72,6 +76,7 @@ struct ProfileView: View {
                                         .foregroundColor(.orange)
                                         .font(.title3)
                                 }
+                                .buttonStyle(.borderless)
                             }
                             
                             Text(firebaseManager.currentUser?.email ?? "lahiruteek@gmail.com")
@@ -166,10 +171,7 @@ struct ProfileView: View {
         }
     }
     
-  
-    
     func uploadProfileImageToFirebase(data: Data) {
-      
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
         isUploading = true
@@ -209,7 +211,6 @@ struct ProfileView: View {
                 print("Error updating name: \(error.localizedDescription)")
             } else {
                 print("Name updated successfully in Firestore!")
-                // Local UI එකත් එකවරම Update වීමට
                 DispatchQueue.main.async {
                     if var currentUser = firebaseManager.currentUser {
                         currentUser.fullName = newName
