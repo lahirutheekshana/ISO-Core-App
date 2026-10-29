@@ -3,7 +3,6 @@ import SwiftUI
 struct PantryInventoryListView: View {
     @ObservedObject var pantryVM: PantryViewModel
     
-
     @State private var showingAddInventorySheet: Bool = false
     
     // Edit / Update States
@@ -11,16 +10,15 @@ struct PantryInventoryListView: View {
     @State private var updatedIngredientName: String = ""
     @State private var showingUpdateAlert: Bool = false
     
-    
     private var pantryShareText: String {
-            if pantryVM.fridgeIngredients.isEmpty {
-                return "My Pantry is currently empty!"
-            }
-            let itemsList = pantryVM.fridgeIngredients.enumerated()
-                .map { "\($0.offset + 1). \($0.element)" }
-                .joined(separator: "\n")
-            return "🛒 My Pantry Items List:\n\n\(itemsList)\n\nShared via SmartChef App"
+        if pantryVM.fridgeIngredients.isEmpty {
+            return "My Pantry is currently empty!"
         }
+        let itemsList = pantryVM.fridgeIngredients.enumerated()
+            .map { "\($0.offset + 1). \($0.element)" }
+            .joined(separator: "\n")
+        return "🛒 My Pantry Items List:\n\n\(itemsList)\n\nShared via SmartChef App"
+    }
     
     var body: some View {
         ZStack {
@@ -94,15 +92,30 @@ struct PantryInventoryListView: View {
         .navigationTitle("My Pantry Items")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingAddInventorySheet = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.orange)
-                        .padding(8)
-                        .background(Color.orange.opacity(0.12))
-                        .clipShape(Circle())
+                HStack(spacing: 12) {
+                    // 1. Share Icon (Family Members ge List Share madalu)
+                    if !pantryVM.fridgeIngredients.isEmpty {
+                        ShareLink(item: pantryShareText) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.orange)
+                                .padding(8)
+                                .background(Color.orange.opacity(0.12))
+                                .clipShape(Circle())
+                        }
+                    }
+                    
+                    // 2. Plus (+) Icon (Add Inventory Sheet open madalu)
+                    Button {
+                        showingAddInventorySheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.orange)
+                            .padding(8)
+                            .background(Color.orange.opacity(0.12))
+                            .clipShape(Circle())
+                    }
                 }
             }
         }

@@ -15,8 +15,19 @@
 		E7823E0F30356DEA007F56BE /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = E7823E0E30356DEA007F56BE /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		E7E9B2D8309327D30043962D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E7823C733031A37E007F56BE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E7823C7A3031A37E007F56BE;
+			remoteInfo = "ISO-Core-App";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		E7823C7B3031A37E007F56BE /* ISO-Core-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ISO-Core-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7E9B2D4309327D30043962D /* ISO-Core-AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ISO-Core-AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -38,6 +49,11 @@
 			path = "ISO-Core-App";
 			sourceTree = "<group>";
 		};
+		E7E9B2D5309327D30043962D /* ISO-Core-AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ISO-Core-AppTests";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +70,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E7E9B2D1309327D30043962D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -61,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				E7823C7D3031A37E007F56BE /* ISO-Core-App */,
+				E7E9B2D5309327D30043962D /* ISO-Core-AppTests */,
 				E7823CB03031DBCB007F56BE /* Frameworks */,
 				E7823C7C3031A37E007F56BE /* Products */,
 			);
@@ -70,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				E7823C7B3031A37E007F56BE /* ISO-Core-App.app */,
+				E7E9B2D4309327D30043962D /* ISO-Core-AppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -112,6 +137,29 @@
 			productReference = E7823C7B3031A37E007F56BE /* ISO-Core-App.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E7E9B2D3309327D30043962D /* ISO-Core-AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7E9B2DC309327D30043962D /* Build configuration list for PBXNativeTarget "ISO-Core-AppTests" */;
+			buildPhases = (
+				E7E9B2D0309327D30043962D /* Sources */,
+				E7E9B2D1309327D30043962D /* Frameworks */,
+				E7E9B2D2309327D30043962D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E7E9B2D9309327D30043962D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E7E9B2D5309327D30043962D /* ISO-Core-AppTests */,
+			);
+			name = "ISO-Core-AppTests";
+			packageProductDependencies = (
+			);
+			productName = "ISO-Core-AppTests";
+			productReference = E7E9B2D4309327D30043962D /* ISO-Core-AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -124,6 +172,10 @@
 				TargetAttributes = {
 					E7823C7A3031A37E007F56BE = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					E7E9B2D3309327D30043962D = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = E7823C7A3031A37E007F56BE;
 					};
 				};
 			};
@@ -146,12 +198,20 @@
 			projectRoot = "";
 			targets = (
 				E7823C7A3031A37E007F56BE /* ISO-Core-App */,
+				E7E9B2D3309327D30043962D /* ISO-Core-AppTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		E7823C793031A37E007F56BE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7E9B2D2309327D30043962D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -168,7 +228,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E7E9B2D0309327D30043962D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E7E9B2D9309327D30043962D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E7823C7A3031A37E007F56BE /* ISO-Core-App */;
+			targetProxy = E7E9B2D8309327D30043962D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		E7823C843031A380007F56BE /* Debug */ = {
@@ -360,6 +435,46 @@
 			};
 			name = Release;
 		};
+		E7E9B2DA309327D30043962D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "lahiru.ISO-Core-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ISO-Core-App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ISO-Core-App";
+			};
+			name = Debug;
+		};
+		E7E9B2DB309327D30043962D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "lahiru.ISO-Core-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ISO-Core-App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ISO-Core-App";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -377,6 +492,15 @@
 			buildConfigurations = (
 				E7823C873031A380007F56BE /* Debug */,
 				E7823C883031A380007F56BE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7E9B2DC309327D30043962D /* Build configuration list for PBXNativeTarget "ISO-Core-AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7E9B2DA309327D30043962D /* Debug */,
+				E7E9B2DB309327D30043962D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
