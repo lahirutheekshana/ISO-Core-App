@@ -87,13 +87,13 @@ class PantryViewModel: ObservableObject {
     
     // MARK: - Fetch Recipes using searchIngredients (Fixed!)
     private func fetchMatchingRecipes() async {
-        // ✅ මෙතන fridgeIngredients වෙනුවට searchIngredients.first පාවිච්චි කළ යුතුය!
+       
         guard let rawIngredient = searchIngredients.first else {
             self.matchedRecipes = []
             return
         }
         
-        // API එකට match වෙන්න lowercase සහ trim කිරීම
+    
         let mainIngredient = rawIngredient.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         
         isLoading = true
