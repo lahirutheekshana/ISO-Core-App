@@ -40,10 +40,28 @@ final class NetworkManagerTests: XCTestCase {
             let response: MealDBResponse = try await networkManager.fetch(from: urlString)
             
            
-            XCTAssertNil(response.meals, "නැති ingredient එකක් දුන් විට meals array එක nil විය යුතුය.")
+            XCTAssertNil(response.meals, "When an ingredient that does not exist is provided, the `meals` array should be `nil`.")
         } catch {
+            XCTAssertNotNil(error, "It is correct for an error to be thrown in the case of an invalid URL or request.")
+        }
+    }
+    
+    func testFetchRecipeLookupSuccess() async throws {
+        let mealId = "52803" // Beef Wellington
+        let urlString = "https://www.themealdb.com/api/json/v1/1/lookup.php?i=\(mealId)"
+        
+        do {
+            let response: MealResponse = try await networkManager.fetch(from: urlString)
+            let recipe = response.meals?.first
             
-            XCTAssertNotNil(error, "Invalid URL/Request එකකදී error එකක් throw වීම නිවැරදිය.")
+            XCTAssertNotNil(recipe, "Beef Wellington recipe should be found.")
+            XCTAssertEqual(recipe?.idMeal, "52803")
+            XCTAssertEqual(recipe?.strMeal, "Beef Wellington")
+            XCTAssertFalse(recipe?.ingredients.isEmpty ?? true, "Recipe should contain parsed ingredients.")
+            XCTAssertFalse(recipe?.instructionSteps.isEmpty ?? true, "Recipe should contain parsed instruction steps.")
+        } catch {
+            XCTFail("Network fetch failed: \(error.localizedDescription)")
         }
     }
 }
+

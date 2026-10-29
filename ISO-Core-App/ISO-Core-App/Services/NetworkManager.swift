@@ -48,15 +48,24 @@ struct MealDBResponse: Codable {
     let meals: [TheMealDBRecipe]?
 }
 
-struct TheMealDBRecipe: Codable, Identifiable {
+struct TheMealDBRecipe: Codable, Identifiable, Hashable, Equatable {
     let idMeal: String
     let strMeal: String
     let strCategory: String?
     let strMealThumb: String?
-    
+    let strInstructions: String?
     
     var id: String { idMeal }
     var title: String { strMeal }
     var imageURL: String { strMealThumb ?? "" }
     var category: String { strCategory ?? "All" }
+    
+    init(idMeal: String, strMeal: String, strCategory: String? = nil, strMealThumb: String? = nil, strInstructions: String? = nil) {
+        self.idMeal = idMeal
+        self.strMeal = strMeal
+        self.strCategory = strCategory
+        self.strMealThumb = strMealThumb
+        self.strInstructions = strInstructions
+    }
 }
+

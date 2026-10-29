@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MockRecipeCardView: View {
-    let recipe: MockRecipe
+    let recipe: TheMealDBRecipe
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -17,9 +17,8 @@ struct MockRecipeCardView: View {
                 .foregroundColor(.primary)
             
             HStack {
-                Label(recipe.time, systemImage: "clock")
+                Label(recipe.category, systemImage: "tag.fill")
                 Spacer()
-                Label("\(recipe.calories) kcal", systemImage: "flame")
             }
             .font(.caption)
             .foregroundColor(.secondary)
@@ -30,3 +29,4 @@ struct MockRecipeCardView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
+

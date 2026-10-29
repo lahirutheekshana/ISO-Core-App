@@ -3,15 +3,43 @@ import Combine
 import AVFoundation
 
 struct RecipeCardView: View {
+    let recipeId: String
+    let initialRecipe: TheMealDBRecipe?
     
-    let recipe: MockRecipe
+    @StateObject private var viewModel = RecipeDetailViewModel()
     @ObservedObject private var favoritesManager = FavoritesManager.shared
     @State private var checkedIngredients: Set<String> = []
     
-
+    @Environment(\.dismiss) private var dismiss
     
     private let speechSynthesizer = AVSpeechSynthesizer()
     @State private var currentlyReadingStep: Int? = nil
+    
+    init(recipeId: String, initialRecipe: TheMealDBRecipe? = nil) {
+        self.recipeId = recipeId
+        self.initialRecipe = initialRecipe
+    }
+    
+    init(recipe: TheMealDBRecipe) {
+        self.recipeId = recipe.id
+        self.initialRecipe = recipe
+    }
+    
+    private var currentTitle: String {
+        viewModel.recipe?.strMeal ?? initialRecipe?.title ?? "Recipe Details"
+    }
+    
+    private var currentImageURL: String {
+        viewModel.recipe?.strMealThumb ?? initialRecipe?.imageURL ?? ""
+    }
+    
+    private var currentCategory: String {
+        viewModel.recipe?.strCategory ?? initialRecipe?.category ?? "General"
+    }
+    
+    private var currentArea: String {
+        viewModel.recipe?.strArea ?? ""
+    }
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -34,34 +62,56 @@ struct RecipeCardView: View {
         }
         .edgesIgnoringSafeArea(.top)
         .background(Color(.systemGroupedBackground))
+        .navigationBarBackButtonHidden(true)
+        .task {
+            await viewModel.fetchRecipeDetails(for: recipeId)
+        }
     }
     
     private var headerSection: some View {
-        ZStack {
-            AsyncImage(url: URL(string: recipe.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    Rectangle().fill(Color.gray.opacity(0.3)).overlay(ProgressView())
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                case .failure:
-                    Rectangle().fill(Color.gray.opacity(0.3)).overlay(Image(systemName: "photo").foregroundColor(.gray))
-                @unknown default:
-                    EmptyView()
+        ZStack(alignment: .topLeading) {
+            ZStack {
+                AsyncImage(url: URL(string: currentImageURL)) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle().fill(Color.gray.opacity(0.3)).overlay(ProgressView())
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    case .failure:
+                        Rectangle().fill(Color.gray.opacity(0.3)).overlay(Image(systemName: "photo").foregroundColor(.gray))
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
-            }
-            .frame(height: 350)
-            .clipped()
-            
-            LinearGradient(colors: [.clear, .black.opacity(0.4)], startPoint: .center, endPoint: .bottom)
                 .frame(height: 350)
+                .clipped()
+                
+                LinearGradient(colors: [.clear, .black.opacity(0.4)], startPoint: .center, endPoint: .bottom)
+                    .frame(height: 350)
+            }
+            
+            // Floating back button
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.primary)
+                    .padding(12)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+            }
+            .buttonStyle(.plain)
+            .padding(.leading, 20)
+            .padding(.top, 56)
         }
     }
     
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
-                Text(recipe.title)
+                Text(currentTitle)
                     .font(.system(size: 28, weight: .bold, design: .serif))
                     .foregroundColor(.primary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -69,30 +119,49 @@ struct RecipeCardView: View {
                 
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                        favoritesManager.toggleFavorite(recipe)
+                        let favRecipe = initialRecipe ?? TheMealDBRecipe(
+                            idMeal: recipeId,
+                            strMeal: currentTitle,
+                            strCategory: currentCategory,
+                            strMealThumb: currentImageURL,
+                            strInstructions: viewModel.recipe?.strInstructions
+                        )
+                        favoritesManager.toggleFavorite(favRecipe)
                     }
                 } label: {
-                    Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
+                    Image(systemName: favoritesManager.isFavorite(recipeId) ? "heart.fill" : "heart")
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(favoritesManager.isFavorite(recipe) ? .red : .secondary)
+                        .foregroundColor(favoritesManager.isFavorite(recipeId) ? .red : .secondary)
                         .padding(8)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
             
-            HStack(spacing: 4) {
-                Image(systemName: "star.fill").foregroundColor(.yellow)
-                Text("\(recipe.rating) Reviews").font(.subheadline).foregroundColor(.secondary)
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill").foregroundColor(.yellow)
+                    Text("4.8 Reviews").font(.subheadline).foregroundColor(.secondary)
+                }
+                
+                if !currentArea.isEmpty {
+                    Text("•").foregroundColor(.secondary)
+                    Text(currentArea).font(.subheadline).foregroundColor(.secondary)
+                }
+                
+                if !currentCategory.isEmpty && currentCategory != "All" {
+                    Text("•").foregroundColor(.secondary)
+                    Text(currentCategory).font(.subheadline).foregroundColor(.orange)
+                }
             }
         }
     }
     
     private var nutritionalTagsSection: some View {
         HStack(spacing: 16) {
-            NutritionalTag(icon: "flame.fill", label: "Calories", value: "\(recipe.calories) kcal")
-            NutritionalTag(icon: "clock.fill", label: "Prep", value: recipe.time)
-            NutritionalTag(icon: "person.2.fill", label: "Servings", value: "\(recipe.servings)")
+            NutritionalTag(icon: "flame.fill", label: "Calories", value: "450 kcal")
+            NutritionalTag(icon: "clock.fill", label: "Prep", value: "30 min")
+            NutritionalTag(icon: "person.2.fill", label: "Servings", value: "2")
         }
     }
     
@@ -106,37 +175,69 @@ struct RecipeCardView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(recipe.ingredients, id: \.self) { ingredient in
-                    let isChecked = checkedIngredients.contains(ingredient)
-                    
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            if isChecked {
-                                checkedIngredients.remove(ingredient)
-                            } else {
-                                checkedIngredients.insert(ingredient)
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(isChecked ? .green : .gray.opacity(0.5))
-                                .font(.system(size: 24))
-                            
-                            Text(ingredient)
-                                .font(.body)
-                                .foregroundColor(isChecked ? .secondary : .primary)
-                                .strikethrough(isChecked, color: .secondary)
-                            
-                            Spacer()
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(isChecked ? Color.green.opacity(0.05) : Color(.systemGray6))
-                        .cornerRadius(12)
+            if viewModel.isLoading && viewModel.recipe == nil {
+                HStack {
+                    ProgressView()
+                        .padding(.trailing, 8)
+                    Text("Fetching ingredients...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 24)
+            } else if let error = viewModel.errorMessage, viewModel.recipe == nil {
+                VStack(spacing: 8) {
+                    Text("Failed to load recipe: \(error)")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                    Button("Retry") {
+                        Task { await viewModel.fetchRecipeDetails(for: recipeId) }
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .font(.caption)
+                    .foregroundColor(.orange)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 16)
+            } else if let recipe = viewModel.recipe {
+                if recipe.ingredients.isEmpty {
+                    Text("No ingredient measurements listed for this recipe.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                } else {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(recipe.ingredients, id: \.ingredient) { item in
+                            let ingredientText = item.measure.isEmpty ? item.ingredient : "\(item.measure) \(item.ingredient)"
+                            let isChecked = checkedIngredients.contains(ingredientText)
+                            
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    if isChecked {
+                                        checkedIngredients.remove(ingredientText)
+                                    } else {
+                                        checkedIngredients.insert(ingredientText)
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(isChecked ? .green : .gray.opacity(0.5))
+                                        .font(.system(size: 24))
+                                    
+                                    Text(ingredientText)
+                                        .font(.body)
+                                        .foregroundColor(isChecked ? .secondary : .primary)
+                                        .strikethrough(isChecked, color: .secondary)
+                                    
+                                    Spacer()
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(isChecked ? Color.green.opacity(0.05) : Color(.systemGray6))
+                                .cornerRadius(12)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
                 }
             }
         }
@@ -148,51 +249,59 @@ struct RecipeCardView: View {
                 .font(.title3)
                 .fontWeight(.bold)
             
-            ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, step in
-                HStack(alignment: .top, spacing: 16) {
-                    Text("\(index + 1)")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 32, height: 32)
-                        .background(Color.orange)
-                        .clipShape(Circle())
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(step)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .lineSpacing(4)
-                    
-                        HStack(spacing: 16) {
-                            Button {
-                                readAloud(text: step, index: index)
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: currentlyReadingStep == index ? "speaker.wave.3.fill" : "play.circle.fill")
-                                    Text(currentlyReadingStep == index ? "Reading..." : "Read Aloud")
-                                }
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                            }
+            if viewModel.isLoading && viewModel.recipe == nil {
+                HStack {
+                    ProgressView()
+                        .padding(.trailing, 8)
+                    Text("Fetching instructions...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 24)
+            } else if let recipe = viewModel.recipe {
+                let steps = recipe.instructionSteps
+                
+                if steps.isEmpty {
+                    Text(recipe.strInstructions ?? "No instructions available.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .top, spacing: 16) {
+                            Text("\(index + 1)")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(width: 32, height: 32)
+                                .background(Color.orange)
+                                .clipShape(Circle())
                             
-                            if step.lowercased().contains("min") || step.lowercased().contains("hour") {
-                                Button {
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "timer")
-                                        Text("Start Timer")
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(step)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                    .lineSpacing(4)
+                                
+                                HStack(spacing: 16) {
+                                    Button {
+                                        readAloud(text: step, index: index)
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: currentlyReadingStep == index ? "speaker.wave.3.fill" : "play.circle.fill")
+                                            Text(currentlyReadingStep == index ? "Reading..." : "Read Aloud")
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
                                     }
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
                                 }
+                                .padding(.top, 4)
                             }
                         }
-                        .padding(.top, 4)
+                        
+                        if index < steps.count - 1 {
+                            Divider().padding(.leading, 48)
+                        }
                     }
-                }
-                
-                if index < recipe.instructions.count - 1 {
-                    Divider().padding(.leading, 48)
                 }
             }
         }
@@ -217,7 +326,6 @@ struct RecipeCardView: View {
         }
     }
 }
-
 
 struct NutritionalTag: View {
     let icon: String
@@ -246,10 +354,9 @@ struct NutritionalTag: View {
 }
 
 // Helper to apply corner radius to specific corners
-
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape( RoundedCorner(radius: radius, corners: corners) )
+        clipShape(RoundedCorner(radius: radius, corners: corners))
     }
 }
 
@@ -263,31 +370,3 @@ struct RoundedCorner: Shape {
     }
 }
 
-#Preview {
-    RecipeCardView(recipe: MockRecipe(
-        id: "1",
-        title: "Spicy Arrabbiata Pasta",
-        time: "30 min",
-        rating: "4.8",
-        imageURL: "https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg",
-        category: "Pasta",
-        calories: 650,
-        servings: 2,
-        ingredients: [
-            "200g Penne Pasta",
-            "2 tbsp Olive Oil",
-            "3 Cloves Garlic, minced",
-            "1 tsp Red Chili Flakes",
-            "400g Crushed Tomatoes",
-            "Fresh Basil",
-            "Parmesan Cheese"
-        ],
-        instructions: [
-            "Boil water in a large pot. Add salt and the penne pasta. Cook until al dente.",
-            "In a large pan, heat olive oil over medium heat. Add minced garlic and sauté for 1 minute until fragrant.",
-            "Add red chili flakes and crushed tomatoes to the pan. Simmer for 15 minutes.",
-            "Drain the pasta and add it directly to the sauce. Toss well to combine.",
-            "Garnish with fresh basil and grated Parmesan cheese before serving."
-        ]
-    ))
-}

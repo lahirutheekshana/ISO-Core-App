@@ -235,20 +235,9 @@ struct SimpleRecipeCardView: View {
     let recipe: TheMealDBRecipe
     @ObservedObject private var favoritesManager = FavoritesManager.shared
     
-    private var mockRecipe: MockRecipe {
-        MockRecipe(
-            id: recipe.id,
-            title: recipe.title,
-            time: "45 min",
-            rating: "4.5",
-            imageURL: recipe.imageURL,
-            category: recipe.category
-        )
-    }
-    
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            NavigationLink(destination: RecipeCardView(recipe: mockRecipe)) {
+            NavigationLink(destination: RecipeCardView(recipe: recipe)) {
                 VStack(alignment: .leading, spacing: 8) {
                     AsyncImage(url: URL(string: recipe.imageURL)) { image in
                         image.resizable().scaledToFill()
@@ -283,12 +272,12 @@ struct SimpleRecipeCardView: View {
             
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                    favoritesManager.toggleFavorite(mockRecipe)
+                    favoritesManager.toggleFavorite(recipe)
                 }
             } label: {
-                Image(systemName: favoritesManager.isFavorite(mockRecipe) ? "heart.fill" : "heart")
+                Image(systemName: favoritesManager.isFavorite(recipe.id) ? "heart.fill" : "heart")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(favoritesManager.isFavorite(mockRecipe) ? .red : .white)
+                    .foregroundColor(favoritesManager.isFavorite(recipe.id) ? .red : .white)
                     .padding(8)
                     .background(Color.black.opacity(0.35))
                     .clipShape(Circle())
@@ -304,7 +293,7 @@ struct SimpleRecipeCardView: View {
 
 
 struct HeroFavoriteButton: View {
-    let recipe: MockRecipe
+    let recipe: TheMealDBRecipe
     @ObservedObject private var favoritesManager = FavoritesManager.shared
     
     var body: some View {
@@ -313,9 +302,9 @@ struct HeroFavoriteButton: View {
                 favoritesManager.toggleFavorite(recipe)
             }
         } label: {
-            Image(systemName: favoritesManager.isFavorite(recipe) ? "heart.fill" : "heart")
+            Image(systemName: favoritesManager.isFavorite(recipe.id) ? "heart.fill" : "heart")
                 .font(.system(size: 18))
-                .foregroundColor(favoritesManager.isFavorite(recipe) ? .red : .primary)
+                .foregroundColor(favoritesManager.isFavorite(recipe.id) ? .red : .primary)
                 .padding(10)
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
@@ -326,15 +315,11 @@ struct HeroFavoriteButton: View {
 }
 
 struct HeroCardView: View {
-    static let recipeOfTheDay = MockRecipe(
-        id: "recipe-of-the-day-beef-wellington",
-        title: "Beef Wellington",
-        time: "45 min",
-        rating: "4.8",
-        imageURL: "https://www.themealdb.com/images/media/meals/1529444830.jpg",
-        category: "Beef",
-        calories: 650,
-        servings: 4
+    static let recipeOfTheDay = TheMealDBRecipe(
+        idMeal: "52803",
+        strMeal: "Beef Wellington",
+        strCategory: "Beef",
+        strMealThumb: "https://www.themealdb.com/images/media/meals/1529444830.jpg"
     )
 
     var body: some View {
@@ -371,12 +356,12 @@ struct HeroCardView: View {
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
-                        Text(Self.recipeOfTheDay.time)
+                        Text("45 min")
                     }
 
                     HStack(spacing: 4) {
                         Image(systemName: "flame")
-                        Text("\(Self.recipeOfTheDay.calories) kcal")
+                        Text("650 kcal")
                     }
                 }
                 .font(.caption)
@@ -395,21 +380,8 @@ struct HeroCardView: View {
     }
 }
 
+typealias MockRecipe = TheMealDBRecipe
 
-struct MockRecipe: Identifiable {
-    let id: String
-    let title: String
-    let time: String
-    let rating: String
-    let imageURL: String
-    let category: String
-    
-    var calories: Int = 450
-    var servings: Int = 2
-    var ingredients: [String] = ["200g Pasta", "2 tbsp Olive Oil", "Garlic", "Tomato Sauce", "Fresh Basil"]
-    var instructions: [String] = ["Boil water and cook pasta until al dente.", "Heat olive oil in a pan and sauté garlic.", "Add tomato sauce and simmer for 10 minutes.", "Toss pasta with sauce and garnish with basil."]
-
-}
 
 #Preview {
     HomeView(authVM: AuthViewModel())
