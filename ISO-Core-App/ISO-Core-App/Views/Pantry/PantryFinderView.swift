@@ -40,22 +40,26 @@ struct PantryFinderView: View {
                         .cornerRadius(14)
                     }
                     
+                    // ✅ Fixed: Wrapped Expiring Soon Alert inside NavigationLink to open PantryInventoryListView
                     let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
                     if expiringCount > 0 {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text("\(expiringCount) ingredients expiring soon!")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                        NavigationLink(destination: PantryInventoryListView(pantryVM: pantryVM)) {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                Text("\(expiringCount) ingredients expiring soon!")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding()
+                            .background(Color.yellow.opacity(0.15))
+                            .cornerRadius(12)
                         }
-                        .padding()
-                        .background(Color.yellow.opacity(0.15))
-                        .cornerRadius(12)
                     }
                     
                     fridgeInputSection
@@ -251,7 +255,7 @@ struct PantryFinderView: View {
             let recognizedStrings = observations.compactMap { $0.topCandidates(1).first?.string.lowercased() }
             
             DispatchQueue.main.async {
-                let commonIngredients = ["tomato", "eggs", "egg", "cheese", "milk", "bread", "butter", "chicken", "onion", "garlic"]
+                let commonIngredients = ["tomato", "eggs", "cheese", "milk", "bread", "butter", "chicken", "onion", "garlic"]
                 
                 var foundAny = false
                 for text in recognizedStrings {

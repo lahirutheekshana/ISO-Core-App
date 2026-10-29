@@ -43,7 +43,9 @@ final class PantryFinderViewTests: XCTestCase {
 
     func testScannedTextIngredientMatching() throws {
         let recognizedStrings = ["found some organic tomato", "fresh eggs in basket", "random text"]
-        // ✅ Removed standalone "egg" to avoid substring collision with "eggs"
+        
+        
+        
         let commonIngredients = ["tomato", "eggs", "cheese", "milk", "bread", "butter", "chicken", "onion", "garlic"]
 
         var foundIngredientsSet: Set<String> = []
