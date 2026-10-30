@@ -48,4 +48,29 @@ final class ProfileViewTests: XCTestCase {
         XCTAssertEqual(darkScheme, .dark, "True dark mode state should map to .dark color scheme.")
         XCTAssertEqual(lightScheme, .light, "False dark mode state should map to .light color scheme.")
     }
+
+    func testSavedRecipesCountMatchesFavoritesManager() throws {
+        let favoritesManager = FavoritesManager.shared
+        let recipe = TheMealDBRecipe(
+            idMeal: "profile_count_test_\(UUID().uuidString)",
+            strMeal: "Profile Count Test Recipe"
+        )
+
+        let countBefore = favoritesManager.favoriteRecipes.count
+        favoritesManager.toggleFavorite(recipe)
+
+        let profileView = ProfileView()
+        XCTAssertEqual(
+            profileView.savedRecipesCountText,
+            "\(countBefore + 1) items",
+            "Profile saved recipes count should match FavoritesManager (same source as Favorites tab)."
+        )
+
+        favoritesManager.toggleFavorite(recipe)
+        XCTAssertEqual(
+            profileView.savedRecipesCountText,
+            "\(countBefore) items",
+            "Profile saved recipes count should decrease when a favorite is removed."
+        )
+    }
 }

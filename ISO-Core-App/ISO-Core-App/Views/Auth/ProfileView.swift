@@ -8,6 +8,7 @@ struct ProfileView: View {
     
     @EnvironmentObject var auth: AuthViewModel
     @ObservedObject var firebaseManager = FirebaseManager.shared
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
     
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
     @AppStorage("expiryAlertsEnabled") private var expiryAlertsEnabled: Bool = true
@@ -19,6 +20,11 @@ struct ProfileView: View {
     
     @State private var isEditingName: Bool = false
     @State private var newName: String = ""
+    
+    /// Display string for the Saved Recipes overview count (matches Favorites tab).
+    var savedRecipesCountText: String {
+        "\(favoritesManager.favoriteRecipes.count) items"
+    }
     
     var body: some View {
         NavigationStack {
@@ -92,7 +98,7 @@ struct ProfileView: View {
                         Label("Saved Recipes", systemImage: "heart.fill")
                             .foregroundColor(.primary)
                         Spacer()
-                        Text("\(firebaseManager.favoriteRecipeIDs.count) items")
+                        Text(savedRecipesCountText)
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(.secondary)

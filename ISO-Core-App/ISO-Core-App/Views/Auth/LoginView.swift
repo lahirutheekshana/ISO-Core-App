@@ -143,28 +143,30 @@ struct LoginView: View {
                     )
                 }
                 
-                // 2. Sign in with Face ID Button
-                Button {
-                    authVM.authenticateWithBiometrics()
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "faceid")
-                            .font(.title2)
-                            .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
-                        
-                        Text("Sign in with Face ID")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.black)
+                // 2. Sign in with Face ID Button (only after an email/password login has saved credentials)
+                if authVM.isBiometricLoginAvailable {
+                    Button {
+                        authVM.authenticateWithBiometrics()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "faceid")
+                                .font(.title2)
+                                .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
+                            
+                            Text("Sign in with Face ID")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.black)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color(white: 0.96))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color(white: 0.96))
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
                 }
                 
                 Spacer()
