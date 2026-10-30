@@ -5,8 +5,7 @@ struct FavoritesView: View {
     
     @ObservedObject var authVM: AuthViewModel
     @ObservedObject private var favoritesManager = FavoritesManager.shared
-    
-    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var body: some View {
         NavigationStack {
@@ -14,10 +13,14 @@ struct FavoritesView: View {
                 if favoritesManager.favoriteRecipes.isEmpty {
                     ScrollView(showsIndicators: false) {
                         emptyStateView
+                            .iPadReadableWidth(AdaptiveLayout.formMaxWidth)
                     }
                 } else {
                     ScrollView(showsIndicators: false) {
-                        LazyVGrid(columns: columns, spacing: 16) {
+                        LazyVGrid(
+                            columns: AdaptiveLayout.recipeGridColumns(for: horizontalSizeClass),
+                            spacing: 16
+                        ) {
                             ForEach(favoritesManager.favoriteRecipes) { recipe in
                                 NavigationLink(destination: RecipeCardView(recipe: recipe)) {
                                     MockRecipeCardView(recipe: recipe)
@@ -27,6 +30,7 @@ struct FavoritesView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top, 10)
+                        .iPadReadableWidth()
                     }
                 }
             }

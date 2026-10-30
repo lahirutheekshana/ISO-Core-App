@@ -77,7 +77,9 @@ struct MainTabView: View {
         .background(.ultraThinMaterial)
         .clipShape(Capsule())
         .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+        .frame(maxWidth: AdaptiveLayout.tabBarMaxWidth)
         .padding(.horizontal, 20)
         .padding(.bottom, 10)
+        .frame(maxWidth: .infinity)
     }
 }

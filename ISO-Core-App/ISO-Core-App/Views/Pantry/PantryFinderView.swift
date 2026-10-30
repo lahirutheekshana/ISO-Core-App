@@ -5,14 +5,13 @@ import Vision
 struct PantryFinderView: View {
     @ObservedObject var authVM: AuthViewModel
     @StateObject private var pantryVM = PantryViewModel()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var newIngredient: String = ""
     
     @State private var showingAddInventorySheet: Bool = false
     
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var inputImage: UIImage?
-    
-    let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
     private var expiringSoonCount: Int {
         pantryVM.pantryItems.filter { $0.isExpiringSoon }.count
@@ -70,6 +69,7 @@ struct PantryFinderView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 90)
+                .iPadReadableWidth()
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .toolbar {
@@ -238,7 +238,10 @@ struct PantryFinderView: View {
                     .font(.title3)
                     .fontWeight(.bold)
                 
-                LazyVGrid(columns: columns, spacing: 16) {
+                LazyVGrid(
+                    columns: AdaptiveLayout.recipeGridColumns(for: horizontalSizeClass),
+                    spacing: 16
+                ) {
                     ForEach(pantryVM.matchedRecipes) { recipe in
                         SimpleRecipeCardView(recipe: recipe)
                     }

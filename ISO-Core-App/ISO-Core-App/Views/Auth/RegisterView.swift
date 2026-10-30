@@ -154,6 +154,7 @@ struct RegisterView: View {
                 .padding(.bottom, 10)
             }
             .padding(.horizontal, 28)
+            .iPadReadableWidth(AdaptiveLayout.formMaxWidth)
         }
     }
 }

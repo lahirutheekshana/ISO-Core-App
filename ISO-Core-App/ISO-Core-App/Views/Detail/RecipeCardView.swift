@@ -11,9 +11,14 @@ struct RecipeCardView: View {
     @State private var checkedIngredients: Set<String> = []
     
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     private let speechSynthesizer = AVSpeechSynthesizer()
     @State private var currentlyReadingStep: Int? = nil
+    
+    private var headerImageHeight: CGFloat {
+        horizontalSizeClass == .regular ? 420 : 350
+    }
     
     init(recipeId: String, initialRecipe: TheMealDBRecipe? = nil) {
         self.recipeId = recipeId
@@ -55,6 +60,8 @@ struct RecipeCardView: View {
                     instructionsSection
                 }
                 .padding(20)
+                .frame(maxWidth: AdaptiveLayout.detailMaxWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
                 .background(Color(.systemBackground))
                 .cornerRadius(32, corners: [.topLeft, .topRight])
                 .offset(y: -30)
@@ -83,11 +90,12 @@ struct RecipeCardView: View {
                         EmptyView()
                     }
                 }
-                .frame(height: 350)
+                .frame(maxWidth: .infinity)
+                .frame(height: headerImageHeight)
                 .clipped()
                 
                 LinearGradient(colors: [.clear, .black.opacity(0.4)], startPoint: .center, endPoint: .bottom)
-                    .frame(height: 350)
+                    .frame(height: headerImageHeight)
             }
             
             // Floating back button

@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     
     @ObservedObject var authVM: AuthViewModel
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @State private var searchText = ""
     @State private var selectedCategory = "All"
@@ -59,6 +60,7 @@ struct HomeView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 90)
+                .iPadReadableWidth()
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             
@@ -220,7 +222,10 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
             } else {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                LazyVGrid(
+                    columns: AdaptiveLayout.recipeGridColumns(for: horizontalSizeClass),
+                    spacing: 16
+                ) {
                     ForEach(filteredRecipes) { recipe in
                         SimpleRecipeCardView(recipe: recipe)
                     }
