@@ -41,6 +41,30 @@ final class PantryFinderViewTests: XCTestCase {
         XCTAssertEqual(expiringCount, 1, "Only 1 item should be marked as expiring soon.")
     }
 
+    func testExpiringSoonBannerClearsAfterDelete() throws {
+        let viewModel = PantryViewModel()
+        let expiringItem = PantryItem(
+            name: "Yogurt",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "pcs",
+            expiryDate: Calendar.current.startOfDay(for: Date()),
+            expiryAlertDays: 1,
+            notes: nil
+        )
+
+        viewModel.addPantryItem(expiringItem)
+
+        var expiringSoonCount = viewModel.pantryItems.filter { $0.isExpiringSoon }.count
+        XCTAssertEqual(expiringSoonCount, 1, "Banner count should show the expiring item.")
+
+        viewModel.removeIngredient("Yogurt")
+
+        expiringSoonCount = viewModel.pantryItems.filter { $0.isExpiringSoon }.count
+        XCTAssertEqual(expiringSoonCount, 0, "Banner should clear after the expiring item is deleted.")
+    }
+
     func testScannedTextIngredientMatching() throws {
         let recognizedStrings = ["found some organic tomato", "fresh eggs in basket", "random text"]
         

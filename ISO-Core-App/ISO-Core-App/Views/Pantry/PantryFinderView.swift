@@ -7,13 +7,16 @@ struct PantryFinderView: View {
     @StateObject private var pantryVM = PantryViewModel()
     @State private var newIngredient: String = ""
     
-    @State private var pantryInventory: [PantryItem] = []
     @State private var showingAddInventorySheet: Bool = false
     
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var inputImage: UIImage?
     
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
+
+    private var expiringSoonCount: Int {
+        pantryVM.pantryItems.filter { $0.isExpiringSoon }.count
+    }
     
     var body: some View {
         NavigationStack {
@@ -41,13 +44,12 @@ struct PantryFinderView: View {
                     }
                     
                     // ✅ Expiring Soon Alert Banner (Navigates to ExpiringItemsView)
-                    let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
-                    if expiringCount > 0 {
+                    if expiringSoonCount > 0 {
                         NavigationLink(destination: ExpiringItemsView(pantryVM: pantryVM)) {
                             HStack {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
-                                Text("\(expiringCount) ingredients expiring soon!")
+                                Text("\(expiringSoonCount) ingredients expiring soon!")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.primary)
@@ -86,7 +88,6 @@ struct PantryFinderView: View {
             }
             .sheet(isPresented: $showingAddInventorySheet) {
                 AddInventoryView { newItem in
-                    pantryInventory.append(newItem)
                     pantryVM.addPantryItem(newItem)
                 }
             }
