@@ -74,4 +74,68 @@ final class PantryViewModelTests: XCTestCase {
       
         XCTAssertTrue(viewModel.searchIngredients.contains("Tomato"), "It should be added to the search tag array.")
     }
+
+    func testAddAndUpdatePantryItemKeepsFullDetails() throws {
+        let originalItem = PantryItem(
+            name: "Yogurt",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 2,
+            unit: "pcs",
+            expiryDate: Date().addingTimeInterval(86400 * 5),
+            expiryAlertDays: 2,
+            notes: "Greek"
+        )
+
+        viewModel.addPantryItem(originalItem)
+
+        XCTAssertTrue(viewModel.fridgeIngredients.contains("Yogurt"))
+        XCTAssertEqual(viewModel.pantryItem(named: "Yogurt")?.quantity, 2)
+        XCTAssertEqual(viewModel.pantryItem(named: "Yogurt")?.notes, "Greek")
+
+        let updatedItem = PantryItem(
+            id: originalItem.id,
+            name: "Greek Yogurt",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 4,
+            unit: "pack",
+            expiryDate: originalItem.expiryDate,
+            expiryAlertDays: 1,
+            notes: "Full fat"
+        )
+        viewModel.updatePantryItem(oldName: "Yogurt", updatedItem: updatedItem)
+
+        XCTAssertFalse(viewModel.fridgeIngredients.contains("Yogurt"))
+        XCTAssertTrue(viewModel.fridgeIngredients.contains("Greek Yogurt"))
+        XCTAssertEqual(viewModel.pantryItem(named: "Greek Yogurt")?.quantity, 4)
+        XCTAssertEqual(viewModel.pantryItem(named: "Greek Yogurt")?.unit, "pack")
+        XCTAssertEqual(viewModel.pantryItem(named: "Greek Yogurt")?.notes, "Full fat")
+    }
+
+    func testRemoveExpiringIngredientRemovesItFromExpiringList() throws {
+        let calendar = Calendar.current
+        let expiringItem = PantryItem(
+            name: "Milk",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "l",
+            expiryDate: calendar.startOfDay(for: Date()),
+            expiryAlertDays: 1,
+            notes: nil
+        )
+
+        viewModel.addPantryItem(expiringItem)
+
+        var expiringItems = viewModel.pantryItems.filter { $0.isExpiringSoon }
+        XCTAssertTrue(expiringItems.contains(where: { $0.name == "Milk" }), "Item should appear in the expiring list before delete.")
+
+        viewModel.removeIngredient("Milk")
+
+        expiringItems = viewModel.pantryItems.filter { $0.isExpiringSoon }
+        XCTAssertFalse(viewModel.fridgeIngredients.contains("Milk"))
+        XCTAssertFalse(viewModel.pantryItems.contains(where: { $0.name == "Milk" }))
+        XCTAssertFalse(expiringItems.contains(where: { $0.name == "Milk" }), "Deleted expiring item should leave the expiring list.")
+    }
 }

@@ -7,6 +7,7 @@ import FirebaseFirestore
 @MainActor
 class PantryViewModel: ObservableObject {
     @Published var fridgeIngredients: [String] = []
+    @Published var pantryItems: [PantryItem] = []
     @Published var searchIngredients: [String] = []
     
     @Published var matchedRecipes: [TheMealDBRecipe] = []
@@ -48,13 +49,42 @@ class PantryViewModel: ObservableObject {
         guard !cleanIngredient.isEmpty else { return }
         
         if !fridgeIngredients.contains(where: { $0.caseInsensitiveCompare(cleanIngredient) == .orderedSame }) {
+            let newItem = PantryItem(
+                name: cleanIngredient,
+                category: "Vegetables",
+                storageLocation: "Fridge",
+                quantity: 1,
+                unit: "pcs",
+                expiryDate: Date().addingTimeInterval(86400 * 7),
+                expiryAlertDays: 1,
+                notes: nil
+            )
+            pantryItems.append(newItem)
             fridgeIngredients.append(cleanIngredient)
-            saveIngredientToFirebase(cleanIngredient)
+            savePantryItemToFirebase(newItem)
+        }
+    }
+    
+    func addPantryItem(_ item: PantryItem) {
+        let cleanName = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanName.isEmpty else { return }
+        
+        if !fridgeIngredients.contains(where: { $0.caseInsensitiveCompare(cleanName) == .orderedSame }) {
+            var itemToSave = item
+            itemToSave.name = cleanName
+            pantryItems.append(itemToSave)
+            fridgeIngredients.append(cleanName)
+            savePantryItemToFirebase(itemToSave)
         }
     }
     
     func removeIngredient(_ ingredient: String) {
+        if let item = pantryItems.first(where: { $0.name == ingredient }) {
+            NotificationManager.shared.cancelExpiryNotification(for: item.id)
+        }
+
         fridgeIngredients.removeAll { $0 == ingredient }
+        pantryItems.removeAll { $0.name == ingredient }
         deleteIngredientFromFirebase(ingredient)
     }
     
@@ -65,24 +95,77 @@ class PantryViewModel: ObservableObject {
         
         if let index = fridgeIngredients.firstIndex(of: oldItem) {
             fridgeIngredients[index] = cleanNewItem
-            
-            guard let userId = Auth.auth().currentUser?.uid else { return }
-            
-            db.collection("users").document(userId).collection("pantry")
-                .whereField("name", isEqualTo: oldItem)
-                .getDocuments { snapshot, error in
-                    guard let documents = snapshot?.documents else { return }
-                    for doc in documents {
-                        doc.reference.updateData(["name": cleanNewItem]) { error in
-                            if let error = error {
-                                print("Error updating in Firebase: \(error.localizedDescription)")
-                            } else {
-                                print("✏️ Pantry item updated in Firebase!")
-                            }
+        }
+        
+        if let itemIndex = pantryItems.firstIndex(where: { $0.name == oldItem }) {
+            pantryItems[itemIndex].name = cleanNewItem
+        }
+        
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        db.collection("users").document(userId).collection("pantry")
+            .whereField("name", isEqualTo: oldItem)
+            .getDocuments { snapshot, error in
+                guard let documents = snapshot?.documents else { return }
+                for doc in documents {
+                    doc.reference.updateData(["name": cleanNewItem]) { error in
+                        if let error = error {
+                            print("Error updating in Firebase: \(error.localizedDescription)")
+                        } else {
+                            print("✏️ Pantry item updated in Firebase!")
                         }
                     }
                 }
+            }
+    }
+    
+    func updatePantryItem(oldName: String, updatedItem: PantryItem) {
+        let cleanName = updatedItem.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanName.isEmpty else { return }
+        
+        var itemToSave = updatedItem
+        itemToSave.name = cleanName
+        
+        if let nameIndex = fridgeIngredients.firstIndex(of: oldName) {
+            fridgeIngredients[nameIndex] = cleanName
         }
+        
+        if let itemIndex = pantryItems.firstIndex(where: { $0.name == oldName || $0.id == updatedItem.id }) {
+            pantryItems[itemIndex] = itemToSave
+        }
+        
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        let data: [String: Any] = [
+            "id": itemToSave.id,
+            "name": itemToSave.name,
+            "category": itemToSave.category,
+            "storageLocation": itemToSave.storageLocation,
+            "quantity": itemToSave.quantity,
+            "unit": itemToSave.unit,
+            "expiryDate": Timestamp(date: itemToSave.expiryDate),
+            "expiryAlertDays": itemToSave.expiryAlertDays,
+            "notes": itemToSave.notes ?? ""
+        ]
+        
+        db.collection("users").document(userId).collection("pantry")
+            .whereField("name", isEqualTo: oldName)
+            .getDocuments { snapshot, error in
+                guard let documents = snapshot?.documents else { return }
+                for doc in documents {
+                    doc.reference.updateData(data) { error in
+                        if let error = error {
+                            print("Error updating pantry item in Firebase: \(error.localizedDescription)")
+                        } else {
+                            print("✏️ Full pantry item updated in Firebase!")
+                        }
+                    }
+                }
+            }
+    }
+    
+    func pantryItem(named name: String) -> PantryItem? {
+        pantryItems.first { $0.name == name }
     }
     
     // MARK: - Fetch Recipes using searchIngredients (Fixed!)
@@ -120,11 +203,19 @@ class PantryViewModel: ObservableObject {
     }
     
     // MARK: - Firebase Functions
-    private func saveIngredientToFirebase(_ item: String) {
+    private func savePantryItemToFirebase(_ item: PantryItem) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
         let data: [String: Any] = [
-            "name": item,
+            "id": item.id,
+            "name": item.name,
+            "category": item.category,
+            "storageLocation": item.storageLocation,
+            "quantity": item.quantity,
+            "unit": item.unit,
+            "expiryDate": Timestamp(date: item.expiryDate),
+            "expiryAlertDays": item.expiryAlertDays,
+            "notes": item.notes ?? "",
             "createdAt": FieldValue.serverTimestamp()
         ]
         
@@ -150,15 +241,43 @@ class PantryViewModel: ObservableObject {
                 }
                 
                 guard let documents = snapshot?.documents else { return }
-                var loadedItems: [String] = []
+                var loadedItems: [PantryItem] = []
+                var loadedNames: [String] = []
                 
                 for doc in documents {
-                    if let name = doc.data()["name"] as? String {
-                        loadedItems.append(name)
+                    let data = doc.data()
+                    guard let name = data["name"] as? String else { continue }
+                    
+                    if loadedNames.contains(where: { $0.caseInsensitiveCompare(name) == .orderedSame }) {
+                        continue
                     }
+                    
+                    let expiryDate: Date
+                    if let timestamp = data["expiryDate"] as? Timestamp {
+                        expiryDate = timestamp.dateValue()
+                    } else {
+                        expiryDate = Date().addingTimeInterval(86400 * 7)
+                    }
+                    
+                    let notesValue = data["notes"] as? String
+                    let item = PantryItem(
+                        id: data["id"] as? String ?? doc.documentID,
+                        name: name,
+                        category: data["category"] as? String ?? "Vegetables",
+                        storageLocation: data["storageLocation"] as? String ?? "Fridge",
+                        quantity: data["quantity"] as? Int ?? 1,
+                        unit: data["unit"] as? String ?? "pcs",
+                        expiryDate: expiryDate,
+                        expiryAlertDays: data["expiryAlertDays"] as? Int ?? 1,
+                        notes: (notesValue?.isEmpty == false) ? notesValue : nil
+                    )
+                    
+                    loadedItems.append(item)
+                    loadedNames.append(name)
                 }
                 
-                self.fridgeIngredients = Array(Set(loadedItems))
+                self.pantryItems = loadedItems
+                self.fridgeIngredients = loadedNames
             }
     }
     

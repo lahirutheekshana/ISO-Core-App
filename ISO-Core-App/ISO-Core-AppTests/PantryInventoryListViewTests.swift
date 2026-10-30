@@ -32,17 +32,44 @@ final class PantryInventoryListViewTests: XCTestCase {
     func testUpdateIngredientLocalArrayAction() throws {
   
         var fridgeIngredients = ["Old Tomato"]
+        var pantryItems = [
+            PantryItem(
+                name: "Old Tomato",
+                category: "Vegetables",
+                storageLocation: "Fridge",
+                quantity: 2,
+                unit: "pcs",
+                expiryDate: Date(),
+                expiryAlertDays: 2,
+                notes: nil
+            )
+        ]
         let oldItem = "Old Tomato"
-        let newItem = "Fresh Tomato"
+        let updatedItem = PantryItem(
+            id: pantryItems[0].id,
+            name: "Fresh Tomato",
+            category: "Vegetables",
+            storageLocation: "Pantry",
+            quantity: 5,
+            unit: "kg",
+            expiryDate: Date().addingTimeInterval(86400 * 3),
+            expiryAlertDays: 1,
+            notes: "Ripe"
+        )
 
  
         if let index = fridgeIngredients.firstIndex(of: oldItem) {
-            fridgeIngredients[index] = newItem
+            fridgeIngredients[index] = updatedItem.name
+        }
+        if let itemIndex = pantryItems.firstIndex(where: { $0.name == oldItem }) {
+            pantryItems[itemIndex] = updatedItem
         }
 
    
         XCTAssertTrue(fridgeIngredients.contains("Fresh Tomato"), "Pantry should contain the updated ingredient name.")
         XCTAssertFalse(fridgeIngredients.contains("Old Tomato"), "Pantry should no longer contain the old ingredient name.")
+        XCTAssertEqual(pantryItems.first?.quantity, 5, "Updated pantry item should keep edited quantity.")
+        XCTAssertEqual(pantryItems.first?.storageLocation, "Pantry", "Updated pantry item should keep edited storage location.")
     }
 
     func testDeleteIngredientLocalArrayAction() throws {

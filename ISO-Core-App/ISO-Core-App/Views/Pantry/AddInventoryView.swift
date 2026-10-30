@@ -3,22 +3,46 @@ import SwiftUI
 struct AddInventoryView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @State private var name: String = ""
-    @State private var category: String = "Vegetables"
-    @State private var storageLocation: String = "Fridge"
-    @State private var quantity: Int = 1
-    @State private var unit: String = "pcs"
-    @State private var expiryAlertDays: Int = 1
-    @State private var expiryDate: Date = Date().addingTimeInterval(86400 * 7)
-    @State private var expiryReminder: Bool = true
-    @State private var notes: String = ""
+    @State private var name: String
+    @State private var category: String
+    @State private var storageLocation: String
+    @State private var quantity: Int
+    @State private var unit: String
+    @State private var expiryAlertDays: Int
+    @State private var expiryDate: Date
+    @State private var expiryReminder: Bool
+    @State private var notes: String
     
+    private let existingItem: PantryItem?
     
     let categories = ["Vegetables", "Dairy", "Fruits", "Meat", "Spices", "Grains"]
     let locations = ["Fridge", "Pantry", "Freezer"]
     let units = ["pcs", "kg", "g", "l", "ml", "pack"]
     
     var onSave: (PantryItem) -> Void
+    
+    private var isEditing: Bool {
+        existingItem != nil
+    }
+    
+    private var navigationTitleText: String {
+        isEditing ? "Edit Inventory" : "Add Inventory"
+    }
+    
+    init(existingItem: PantryItem? = nil, onSave: @escaping (PantryItem) -> Void) {
+        self.existingItem = existingItem
+        self.onSave = onSave
+        
+        _name = State(initialValue: existingItem?.name ?? "")
+        _category = State(initialValue: existingItem?.category ?? "Vegetables")
+        _storageLocation = State(initialValue: existingItem?.storageLocation ?? "Fridge")
+        _quantity = State(initialValue: existingItem?.quantity ?? 1)
+        _unit = State(initialValue: existingItem?.unit ?? "pcs")
+        _expiryAlertDays = State(initialValue: existingItem?.expiryAlertDays ?? 1)
+        _expiryDate = State(initialValue: existingItem?.expiryDate ?? Date().addingTimeInterval(86400 * 7))
+        _expiryReminder = State(initialValue: true)
+        _notes = State(initialValue: existingItem?.notes ?? "")
+    }
     
     var body: some View {
         NavigationStack {
@@ -67,7 +91,7 @@ struct AddInventoryView: View {
                     TextField("Optional notes...", text: $notes)
                 }
             }
-            .navigationTitle("Add Inventory")
+            .navigationTitle(navigationTitleText)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -78,7 +102,8 @@ struct AddInventoryView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        let newItem = PantryItem(
+                        let savedItem = PantryItem(
+                            id: existingItem?.id ?? UUID().uuidString,
                             name: name,
                             category: category,
                             storageLocation: storageLocation,
@@ -90,10 +115,12 @@ struct AddInventoryView: View {
                         )
                         
                         if expiryReminder {
-                            NotificationManager.shared.scheduleExpiryNotification(for: newItem)
+                            NotificationManager.shared.scheduleExpiryNotification(for: savedItem)
+                        } else {
+                            NotificationManager.shared.cancelExpiryNotification(for: savedItem.id)
                         }
                         
-                        onSave(newItem)
+                        onSave(savedItem)
                         dismiss()
                     }
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -105,4 +132,3 @@ struct AddInventoryView: View {
         }
     }
 }
-

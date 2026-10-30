@@ -12,10 +12,14 @@ struct PantryItem: Identifiable, Codable {
     var notes: String?
 
     var isExpiringSoon: Bool {
-            let calendar = Calendar.current
-            if let alertDate = calendar.date(byAdding: .day, value: -expiryAlertDays, to: expiryDate) {
-                return Date() >= alertDate && Date() <= expiryDate
-            }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let expiryDay = calendar.startOfDay(for: expiryDate)
+
+        guard let alertDay = calendar.date(byAdding: .day, value: -expiryAlertDays, to: expiryDay) else {
             return false
         }
+
+        return today >= alertDay && today <= expiryDay
     }
+}

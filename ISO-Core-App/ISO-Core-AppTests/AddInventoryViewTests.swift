@@ -59,4 +59,40 @@ final class AddInventoryViewTests: XCTestCase {
         
         XCTAssertFalse(isValid, "Save button should remain disabled when name is empty or whitespaces.")
     }
+
+    func testEditModeUsesExistingItemCallback() throws {
+        let existingItem = PantryItem(
+            name: "Milk",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 2,
+            unit: "l",
+            expiryDate: Date(),
+            expiryAlertDays: 3,
+            notes: "Organic"
+        )
+
+        var savedItem: PantryItem?
+        let view = AddInventoryView(existingItem: existingItem) { item in
+            savedItem = item
+        }
+
+        let updatedItem = PantryItem(
+            id: existingItem.id,
+            name: "Almond Milk",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "l",
+            expiryDate: existingItem.expiryDate,
+            expiryAlertDays: 5,
+            notes: "Unsweetened"
+        )
+        view.onSave(updatedItem)
+
+        XCTAssertEqual(savedItem?.id, existingItem.id, "Edited item should keep the original id.")
+        XCTAssertEqual(savedItem?.name, "Almond Milk", "Edited item name should match.")
+        XCTAssertEqual(savedItem?.quantity, 1, "Edited item quantity should match.")
+        XCTAssertEqual(savedItem?.expiryAlertDays, 5, "Edited expiry alert days should match.")
+    }
 }

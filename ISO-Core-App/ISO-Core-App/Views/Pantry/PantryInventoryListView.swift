@@ -6,9 +6,7 @@ struct PantryInventoryListView: View {
     @State private var showingAddInventorySheet: Bool = false
     
     // Edit / Update States
-    @State private var itemToEdit: String? = nil
-    @State private var updatedIngredientName: String = ""
-    @State private var showingUpdateAlert: Bool = false
+    @State private var itemToEdit: PantryItem? = nil
     
     private var pantryShareText: String {
         if pantryVM.fridgeIngredients.isEmpty {
@@ -54,9 +52,16 @@ struct PantryInventoryListView: View {
                                 
                                 // 1. Update (Edit) Button
                                 Button {
-                                    itemToEdit = ingredient
-                                    updatedIngredientName = ingredient
-                                    showingUpdateAlert = true
+                                    itemToEdit = pantryVM.pantryItem(named: ingredient) ?? PantryItem(
+                                        name: ingredient,
+                                        category: "Vegetables",
+                                        storageLocation: "Fridge",
+                                        quantity: 1,
+                                        unit: "pcs",
+                                        expiryDate: Date().addingTimeInterval(86400 * 7),
+                                        expiryAlertDays: 1,
+                                        notes: nil
+                                    )
                                 } label: {
                                     Image(systemName: "pencil.circle.fill")
                                         .font(.system(size: 22))
@@ -122,28 +127,14 @@ struct PantryInventoryListView: View {
         // Add Sheet Modal (AddInventoryView)
         .sheet(isPresented: $showingAddInventorySheet) {
             AddInventoryView { newItem in
-                pantryVM.addIngredient(newItem.name)
+                pantryVM.addPantryItem(newItem)
             }
         }
-        // Update Alert Modal
-        .alert("Update Ingredient", isPresented: $showingUpdateAlert) {
-            TextField("Ingredient Name", text: $updatedIngredientName)
-            Button("Save") {
-                if let oldItem = itemToEdit,
-                   !updatedIngredientName.trimmingCharacters(in: .whitespaces).isEmpty {
-                    
-                    pantryVM.updateIngredient(oldItem: oldItem, newItem: updatedIngredientName)
-                    
-                    itemToEdit = nil
-                    updatedIngredientName = ""
-                }
+        // Edit Sheet Modal (same form, Edit Inventory title)
+        .sheet(item: $itemToEdit) { existingItem in
+            AddInventoryView(existingItem: existingItem) { updatedItem in
+                pantryVM.updatePantryItem(oldName: existingItem.name, updatedItem: updatedItem)
             }
-            Button("Cancel", role: .cancel) {
-                itemToEdit = nil
-                updatedIngredientName = ""
-            }
-        } message: {
-            Text("Edit the name of the selected pantry item.")
         }
     }
 }
