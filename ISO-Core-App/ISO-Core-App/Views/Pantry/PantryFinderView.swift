@@ -43,9 +43,7 @@ struct PantryFinderView: View {
                     // ✅ Expiring Soon Alert Banner (Navigates to ExpiringItemsView)
                     let expiringCount = pantryInventory.filter { $0.isExpiringSoon }.count
                     if expiringCount > 0 {
-                        let expiringItemsList = pantryInventory.filter { $0.isExpiringSoon }
-                        
-                        NavigationLink(destination: ExpiringItemsView(expiringItems: expiringItemsList, pantryVM: pantryVM)) {
+                        NavigationLink(destination: ExpiringItemsView(pantryVM: pantryVM)) {
                             HStack {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
@@ -89,7 +87,7 @@ struct PantryFinderView: View {
             .sheet(isPresented: $showingAddInventorySheet) {
                 AddInventoryView { newItem in
                     pantryInventory.append(newItem)
-                    pantryVM.addIngredient(newItem.name)
+                    pantryVM.addPantryItem(newItem)
                 }
             }
             .onChange(of: selectedPhotoItem) { newItem in

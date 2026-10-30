@@ -1,14 +1,17 @@
 import SwiftUI
 
 struct ExpiringItemsView: View {
-    let expiringItems: [PantryItem]
     @ObservedObject var pantryVM: PantryViewModel
-    
+
+    private var expiringItems: [PantryItem] {
+        pantryVM.pantryItems.filter { $0.isExpiringSoon }
+    }
+
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
-            
+
             if expiringItems.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "checkmark.seal.fill")
@@ -29,26 +32,25 @@ struct ExpiringItemsView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.system(size: 20))
                                     .foregroundColor(.orange)
-                                
+
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(item.name)
                                         .font(.body)
                                         .fontWeight(.semibold)
-                                    
+
                                     HStack(spacing: 6) {
                                         Text("Expires: \(item.expiryDate.formatted(date: .abbreviated, time: .omitted))")
                                             .font(.caption)
                                             .foregroundColor(.red)
-                                        
+
                                         Text("• \(item.quantity) \(item.unit)")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
                                 }
-                                
+
                                 Spacer()
-                                
-                                // Quick Remove Button
+
                                 Button {
                                     withAnimation {
                                         pantryVM.removeIngredient(item.name)
