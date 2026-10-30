@@ -4,14 +4,25 @@ import Combine
 struct LoginView: View {
     
     @EnvironmentObject var authVM: AuthViewModel
+    @Environment(\.colorScheme) private var colorScheme
     
     @State private var showRegister = false
     @State private var isPasswordVisible: Bool = false
     @State private var iconScale: CGFloat = 1.0
     
+    private let brandRed = Color(red: 1.0, green: 0.23, blue: 0.23)
+    
+    private var fieldBackground: Color {
+        Color(uiColor: .secondarySystemBackground)
+    }
+    
+    private var screenBackground: Color {
+        Color(uiColor: .systemBackground)
+    }
+    
     var body: some View {
         ZStack {
-            Color.white
+            screenBackground
                 .ignoresSafeArea()
             
             VStack(spacing: 20) {
@@ -22,7 +33,7 @@ struct LoginView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 50, height: 50)
-                    .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
+                    .foregroundColor(brandRed)
                     .padding(.bottom, 10)
                     .scaleEffect(iconScale)
                     .onTapGesture {
@@ -40,11 +51,11 @@ struct LoginView: View {
                 VStack(spacing: 8) {
                     Text("Welcome Back!")
                         .font(.system(size: 30, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                     
                     Text("Sign in to access your saved recipes")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
                 .padding(.bottom, 10)
                 
@@ -53,28 +64,31 @@ struct LoginView: View {
                     TextField("Email Address", text: $authVM.email)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
+                        .foregroundColor(.primary)
                         .padding(.horizontal, 16)
                         .frame(height: 54)
-                        .background(Color(white: 0.96))
+                        .background(fieldBackground)
                         .cornerRadius(14)
                     
                     HStack {
                         if isPasswordVisible {
                             TextField("Password", text: $authVM.password)
+                                .foregroundColor(.primary)
                         } else {
                             SecureField("Password", text: $authVM.password)
+                                .foregroundColor(.primary)
                         }
                         
                         Button {
                             isPasswordVisible.toggle()
                         } label: {
                             Image(systemName: isPasswordVisible ? "eye.slash.fill" : "eye.fill")
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         }
                     }
                     .padding(.horizontal, 16)
                     .frame(height: 54)
-                    .background(Color(white: 0.96))
+                    .background(fieldBackground)
                     .cornerRadius(14)
                 }
                 
@@ -102,9 +116,9 @@ struct LoginView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 54)
-                    .background(Color(red: 1.0, green: 0.23, blue: 0.23))
+                    .background(brandRed)
                     .cornerRadius(16)
-                    .shadow(color: Color(red: 1.0, green: 0.23, blue: 0.23).opacity(0.35), radius: 10, x: 0, y: 6)
+                    .shadow(color: brandRed.opacity(0.35), radius: 10, x: 0, y: 6)
                 }
                 .padding(.top, 4)
                 
@@ -114,7 +128,7 @@ struct LoginView: View {
                     Text("OR")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     VStack { Divider() }
                 }
                 .padding(.vertical, 4)
@@ -131,15 +145,15 @@ struct LoginView: View {
                         Text("Continue with Google")
                             .font(.headline)
                             .fontWeight(.semibold)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(Color(white: 0.96))
+                    .background(fieldBackground)
                     .cornerRadius(16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            .stroke(Color.primary.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 1)
                     )
                 }
                 
@@ -151,20 +165,20 @@ struct LoginView: View {
                         HStack(spacing: 10) {
                             Image(systemName: "faceid")
                                 .font(.title2)
-                                .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
+                                .foregroundColor(brandRed)
                             
                             Text("Sign in with Face ID")
                                 .font(.headline)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(Color(white: 0.96))
+                        .background(fieldBackground)
                         .cornerRadius(16)
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                .stroke(Color.primary.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 1)
                         )
                     }
                 }
@@ -174,7 +188,7 @@ struct LoginView: View {
                 // Register Redirect
                 HStack(spacing: 4) {
                     Text("Don't have an account?")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.subheadline)
                     
                     Button {
@@ -183,7 +197,7 @@ struct LoginView: View {
                         Text("Sign Up")
                             .font(.subheadline)
                             .fontWeight(.bold)
-                            .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.23))
+                            .foregroundColor(brandRed)
                     }
                 }
                 .padding(.bottom, 10)

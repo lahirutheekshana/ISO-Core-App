@@ -5,6 +5,7 @@ struct ContentView: View {
     @StateObject private var authVM = AuthViewModel()
     
     @State private var showLogin = false
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
 
     
     var body: some View {
@@ -18,6 +19,7 @@ struct ContentView: View {
             }
         }
         .environmentObject(authVM)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 

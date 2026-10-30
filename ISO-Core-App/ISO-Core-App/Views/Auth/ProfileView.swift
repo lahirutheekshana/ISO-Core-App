@@ -166,7 +166,6 @@ struct ProfileView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Profile")
-            .preferredColorScheme(isDarkMode ? .dark : .light)
             .alert("Edit Name", isPresented: $isEditingName) {
                 TextField("Enter new name", text: $newName)
                 Button("Save", action: updateUserNameInFirebase)
