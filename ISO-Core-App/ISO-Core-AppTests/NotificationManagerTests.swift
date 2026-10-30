@@ -9,6 +9,7 @@ final class NotificationManagerTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         notificationManager = NotificationManager.shared
+        UserDefaults.standard.set(true, forKey: "notificationsEnabled")
         UserDefaults.standard.set(true, forKey: "expiryAlertsEnabled")
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
@@ -19,7 +20,22 @@ final class NotificationManagerTests: XCTestCase {
         try super.tearDownWithError()
     }
 
+    private func requireNotificationAuthorization() async throws {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        if settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional {
+            return
+        }
+        let granted = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+            center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                continuation.resume(returning: granted)
+            }
+        }
+        try XCTSkipIf(!granted, "Notification authorization is required to assert pending requests.")
+    }
+
     func testScheduleExpiryNotification() async throws {
+        try await requireNotificationAuthorization()
         let futureExpiryDate = Calendar.current.date(byAdding: .day, value: 5, to: Date())!
         let mockItem = PantryItem(
             id: "test_item_123",
@@ -124,6 +140,7 @@ final class NotificationManagerTests: XCTestCase {
     }
 
     func testRescheduleReplacesExistingNotification() async throws {
+        try await requireNotificationAuthorization()
         let calendar = Calendar.current
         let itemID = "reschedule_item"
         let originalExpiry = calendar.date(byAdding: .day, value: 7, to: Date())!
@@ -163,6 +180,101 @@ final class NotificationManagerTests: XCTestCase {
         XCTAssertTrue(
             matching.first?.trigger is UNTimeIntervalNotificationTrigger,
             "Edited item already in alert window should use an immediate trigger."
+        )
+    }
+
+    func testApplyExpiryReminderCancelsWhenReminderDisabled() async throws {
+        try await requireNotificationAuthorization()
+        let futureExpiry = Calendar.current.date(byAdding: .day, value: 5, to: Date())!
+        let item = PantryItem(
+            id: "reminder_off_item",
+            name: "Butter",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "pcs",
+            expiryDate: futureExpiry,
+            expiryAlertDays: 2,
+            notes: nil,
+            expiryReminderEnabled: true
+        )
+
+        notificationManager.applyExpiryReminder(for: item)
+        try await Task.sleep(nanoseconds: 500_000_000)
+
+        var pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+        XCTAssertTrue(pending.contains(where: { $0.identifier == item.id }))
+
+        var disabledItem = item
+        disabledItem.expiryReminderEnabled = false
+        notificationManager.applyExpiryReminder(for: disabledItem)
+        try await Task.sleep(nanoseconds: 500_000_000)
+
+        pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+        XCTAssertFalse(
+            pending.contains(where: { $0.identifier == item.id }),
+            "Disabling per-item reminder should cancel the pending notification."
+        )
+    }
+
+    func testSyncExpiryNotificationsSchedulesEnabledItemsOnly() async throws {
+        try await requireNotificationAuthorization()
+        let futureExpiry = Calendar.current.date(byAdding: .day, value: 6, to: Date())!
+        let enabledItem = PantryItem(
+            id: "sync_enabled",
+            name: "Eggs",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 6,
+            unit: "pcs",
+            expiryDate: futureExpiry,
+            expiryAlertDays: 2,
+            notes: nil,
+            expiryReminderEnabled: true
+        )
+        let disabledItem = PantryItem(
+            id: "sync_disabled",
+            name: "Cheese",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "pack",
+            expiryDate: futureExpiry,
+            expiryAlertDays: 2,
+            notes: nil,
+            expiryReminderEnabled: false
+        )
+
+        notificationManager.syncExpiryNotifications(for: [enabledItem, disabledItem])
+        try await Task.sleep(nanoseconds: 500_000_000)
+
+        let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+        XCTAssertTrue(pending.contains(where: { $0.identifier == enabledItem.id }))
+        XCTAssertFalse(pending.contains(where: { $0.identifier == disabledItem.id }))
+    }
+
+    func testScheduleSkippedWhenNotificationsGloballyDisabled() async throws {
+        UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+        let futureExpiry = Calendar.current.date(byAdding: .day, value: 5, to: Date())!
+        let item = PantryItem(
+            id: "global_off_item",
+            name: "Milk",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "l",
+            expiryDate: futureExpiry,
+            expiryAlertDays: 1,
+            notes: nil
+        )
+
+        notificationManager.scheduleExpiryNotification(for: item)
+        try await Task.sleep(nanoseconds: 500_000_000)
+
+        let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+        XCTAssertFalse(
+            pending.contains(where: { $0.identifier == item.id }),
+            "Global notifications toggle should prevent scheduling."
         )
     }
 }

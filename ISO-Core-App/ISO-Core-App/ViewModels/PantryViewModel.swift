@@ -57,10 +57,12 @@ class PantryViewModel: ObservableObject {
                 unit: "pcs",
                 expiryDate: Date().addingTimeInterval(86400 * 7),
                 expiryAlertDays: 1,
-                notes: nil
+                notes: nil,
+                expiryReminderEnabled: true
             )
             pantryItems.append(newItem)
             fridgeIngredients.append(cleanIngredient)
+            NotificationManager.shared.applyExpiryReminder(for: newItem)
             savePantryItemToFirebase(newItem)
         }
     }
@@ -74,6 +76,7 @@ class PantryViewModel: ObservableObject {
             itemToSave.name = cleanName
             pantryItems.append(itemToSave)
             fridgeIngredients.append(cleanName)
+            NotificationManager.shared.applyExpiryReminder(for: itemToSave)
             savePantryItemToFirebase(itemToSave)
         }
     }
@@ -99,6 +102,7 @@ class PantryViewModel: ObservableObject {
         
         if let itemIndex = pantryItems.firstIndex(where: { $0.name == oldItem }) {
             pantryItems[itemIndex].name = cleanNewItem
+            NotificationManager.shared.applyExpiryReminder(for: pantryItems[itemIndex])
         }
         
         guard let userId = Auth.auth().currentUser?.uid else { return }
@@ -134,6 +138,8 @@ class PantryViewModel: ObservableObject {
             pantryItems[itemIndex] = itemToSave
         }
         
+        NotificationManager.shared.applyExpiryReminder(for: itemToSave)
+        
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
         let data: [String: Any] = [
@@ -145,7 +151,8 @@ class PantryViewModel: ObservableObject {
             "unit": itemToSave.unit,
             "expiryDate": Timestamp(date: itemToSave.expiryDate),
             "expiryAlertDays": itemToSave.expiryAlertDays,
-            "notes": itemToSave.notes ?? ""
+            "notes": itemToSave.notes ?? "",
+            "expiryReminderEnabled": itemToSave.expiryReminderEnabled
         ]
         
         db.collection("users").document(userId).collection("pantry")
@@ -216,6 +223,7 @@ class PantryViewModel: ObservableObject {
             "expiryDate": Timestamp(date: item.expiryDate),
             "expiryAlertDays": item.expiryAlertDays,
             "notes": item.notes ?? "",
+            "expiryReminderEnabled": item.expiryReminderEnabled,
             "createdAt": FieldValue.serverTimestamp()
         ]
         
@@ -269,7 +277,8 @@ class PantryViewModel: ObservableObject {
                         unit: data["unit"] as? String ?? "pcs",
                         expiryDate: expiryDate,
                         expiryAlertDays: data["expiryAlertDays"] as? Int ?? 1,
-                        notes: (notesValue?.isEmpty == false) ? notesValue : nil
+                        notes: (notesValue?.isEmpty == false) ? notesValue : nil,
+                        expiryReminderEnabled: data["expiryReminderEnabled"] as? Bool ?? true
                     )
                     
                     loadedItems.append(item)
@@ -278,6 +287,7 @@ class PantryViewModel: ObservableObject {
                 
                 self.pantryItems = loadedItems
                 self.fridgeIngredients = loadedNames
+                NotificationManager.shared.syncExpiryNotifications(for: loadedItems)
             }
     }
     

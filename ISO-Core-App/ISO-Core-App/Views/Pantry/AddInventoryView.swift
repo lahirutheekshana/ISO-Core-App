@@ -40,7 +40,7 @@ struct AddInventoryView: View {
         _unit = State(initialValue: existingItem?.unit ?? "pcs")
         _expiryAlertDays = State(initialValue: existingItem?.expiryAlertDays ?? 1)
         _expiryDate = State(initialValue: existingItem?.expiryDate ?? Date().addingTimeInterval(86400 * 7))
-        _expiryReminder = State(initialValue: true)
+        _expiryReminder = State(initialValue: existingItem?.expiryReminderEnabled ?? true)
         _notes = State(initialValue: existingItem?.notes ?? "")
     }
     
@@ -111,14 +111,9 @@ struct AddInventoryView: View {
                             unit: unit,
                             expiryDate: expiryDate,
                             expiryAlertDays: expiryAlertDays,
-                            notes: notes.isEmpty ? nil : notes
+                            notes: notes.isEmpty ? nil : notes,
+                            expiryReminderEnabled: expiryReminder
                         )
-                        
-                        if expiryReminder {
-                            NotificationManager.shared.scheduleExpiryNotification(for: savedItem)
-                        } else {
-                            NotificationManager.shared.cancelExpiryNotification(for: savedItem.id)
-                        }
                         
                         onSave(savedItem)
                         dismiss()

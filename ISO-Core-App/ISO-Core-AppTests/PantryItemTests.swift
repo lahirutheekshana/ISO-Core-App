@@ -107,5 +107,6 @@ final class PantryItemTests: XCTestCase {
         XCTAssertNotEqual(item1.id, item2.id, "Each PantryItem instance should have a unique ID.")
         XCTAssertEqual(item1.name, "Apple", "Item name should match.")
         XCTAssertNil(item1.notes, "Notes should be nil if not provided.")
+        XCTAssertTrue(item1.expiryReminderEnabled, "Expiry reminder should default to enabled.")
     }
 }

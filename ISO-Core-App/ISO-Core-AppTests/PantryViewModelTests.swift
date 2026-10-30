@@ -1,6 +1,5 @@
 import XCTest
-
-
+import UserNotifications
 @testable import ISO_Core_App
 
 @MainActor
@@ -10,11 +9,14 @@ final class PantryViewModelTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        
+        UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+        UserDefaults.standard.set(true, forKey: "expiryAlertsEnabled")
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         viewModel = PantryViewModel()
     }
 
     override func tearDown() async throws {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         viewModel = nil
         try await super.tearDown()
     }
@@ -137,5 +139,69 @@ final class PantryViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.fridgeIngredients.contains("Milk"))
         XCTAssertFalse(viewModel.pantryItems.contains(where: { $0.name == "Milk" }))
         XCTAssertFalse(expiringItems.contains(where: { $0.name == "Milk" }), "Deleted expiring item should leave the expiring list.")
+    }
+
+    func testAddPantryItemKeepsReminderEnabledFlag() throws {
+        let item = PantryItem(
+            id: "vm_schedule_item",
+            name: "Tomato",
+            category: "Vegetables",
+            storageLocation: "Fridge",
+            quantity: 2,
+            unit: "pcs",
+            expiryDate: Date().addingTimeInterval(86400 * 5),
+            expiryAlertDays: 2,
+            notes: nil,
+            expiryReminderEnabled: true
+        )
+
+        viewModel.addPantryItem(item)
+
+        XCTAssertTrue(viewModel.fridgeIngredients.contains("Tomato"))
+        XCTAssertEqual(viewModel.pantryItem(named: "Tomato")?.expiryReminderEnabled, true)
+        XCTAssertEqual(viewModel.pantryItem(named: "Tomato")?.id, item.id)
+    }
+
+    func testRemoveIngredientRemovesItemFromPantryState() throws {
+        let item = PantryItem(
+            id: "vm_cancel_item",
+            name: "Spinach",
+            category: "Vegetables",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "pack",
+            expiryDate: Date().addingTimeInterval(86400 * 4),
+            expiryAlertDays: 1,
+            notes: nil,
+            expiryReminderEnabled: true
+        )
+
+        viewModel.addPantryItem(item)
+        viewModel.removeIngredient("Spinach")
+
+        XCTAssertFalse(viewModel.fridgeIngredients.contains("Spinach"))
+        XCTAssertNil(viewModel.pantryItem(named: "Spinach"))
+    }
+
+    func testUpdatePantryItemRespectsReminderDisabled() throws {
+        let original = PantryItem(
+            id: "vm_update_reminder",
+            name: "Yogurt Cup",
+            category: "Dairy",
+            storageLocation: "Fridge",
+            quantity: 1,
+            unit: "pcs",
+            expiryDate: Date().addingTimeInterval(86400 * 5),
+            expiryAlertDays: 2,
+            notes: nil,
+            expiryReminderEnabled: true
+        )
+        viewModel.addPantryItem(original)
+
+        var updated = original
+        updated.expiryReminderEnabled = false
+        viewModel.updatePantryItem(oldName: "Yogurt Cup", updatedItem: updated)
+
+        XCTAssertEqual(viewModel.pantryItem(named: "Yogurt Cup")?.expiryReminderEnabled, false)
     }
 }

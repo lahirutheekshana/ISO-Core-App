@@ -6,6 +6,8 @@ class NotificationManager {
 
     private let defaultAlertHour = 9
     private let immediateDelaySeconds: TimeInterval = 1
+    private let notificationsEnabledKey = "notificationsEnabled"
+    private let expiryAlertsEnabledKey = "expiryAlertsEnabled"
 
     private init() {}
 
@@ -22,9 +24,24 @@ class NotificationManager {
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [itemID])
     }
 
+    /// Schedules or cancels based on the item's per-item reminder flag and global toggles.
+    func applyExpiryReminder(for item: PantryItem, now: Date = Date()) {
+        if item.expiryReminderEnabled {
+            scheduleExpiryNotification(for: item, now: now)
+        } else {
+            cancelExpiryNotification(for: item.id)
+        }
+    }
+
+    /// Re-applies expiry reminders for the full pantry list (e.g. after Firebase fetch).
+    func syncExpiryNotifications(for items: [PantryItem], now: Date = Date()) {
+        for item in items {
+            applyExpiryReminder(for: item, now: now)
+        }
+    }
+
     func scheduleExpiryNotification(for item: PantryItem, now: Date = Date()) {
-        let alertsEnabled = UserDefaults.standard.object(forKey: "expiryAlertsEnabled") as? Bool ?? true
-        guard alertsEnabled else {
+        guard areExpiryAlertsAllowed else {
             cancelExpiryNotification(for: item.id)
             return
         }
@@ -79,5 +96,11 @@ class NotificationManager {
 
         // Alert window has already started (date-picker midnight made the original time "past")
         return UNTimeIntervalNotificationTrigger(timeInterval: immediateDelaySeconds, repeats: false)
+    }
+
+    private var areExpiryAlertsAllowed: Bool {
+        let notificationsEnabled = UserDefaults.standard.object(forKey: notificationsEnabledKey) as? Bool ?? true
+        let expiryAlertsEnabled = UserDefaults.standard.object(forKey: expiryAlertsEnabledKey) as? Bool ?? true
+        return notificationsEnabled && expiryAlertsEnabled
     }
 }

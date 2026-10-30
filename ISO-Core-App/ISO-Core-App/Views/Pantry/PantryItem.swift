@@ -10,6 +10,8 @@ struct PantryItem: Identifiable, Codable {
     var expiryDate: Date
     var expiryAlertDays: Int
     var notes: String?
+    /// When false, no local expiry notification is scheduled for this item.
+    var expiryReminderEnabled: Bool = true
 
     var isExpiringSoon: Bool {
         let calendar = Calendar.current
